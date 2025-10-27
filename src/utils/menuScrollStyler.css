@@ -26,11 +26,42 @@
   background-color: #293F73;
 }
 
+/* Force white when mobile menu is open (applies at all widths) */
+[main-menu].mobile-menu-open .footer_link,
+[main-menu].mobile-menu-open .menu_logo-link {
+  color: white !important;
+}
+
+[main-menu].mobile-menu-open .burger-line {
+  background-color: white !important;
+}
+
+/* Optional: ensure SVG logos also turn white */
+[main-menu].mobile-menu-open .menu_logo-link svg,
+[main-menu].mobile-menu-open .menu_logo-link svg * {
+  fill: white !important;
+}
+
 /* Responsive styles for footer_link - only apply color on 992px and above */
 @media (max-width: 991px) {
-  [main-menu].menu-white .footer_link,
-  [main-menu].menu-navy .footer_link {
-    color: inherit; /* Reset to default color on mobile */
+  /* When mobile menu is open - everything is white */
+  [main-menu].mobile-menu-open .footer_link,
+  [main-menu].mobile-menu-open .menu_logo-link,
+  [main-menu].mobile-menu-open .burger-line {
+    color: white !important;
+  }
+  
+  [main-menu].mobile-menu-open .burger-line {
+    background-color: white !important;
+  }
+  
+  /* When mobile menu is closed, use section colors */
+  [main-menu]:not(.mobile-menu-open).menu-navy .footer_link {
+    color: #293F73;
+  }
+  
+  [main-menu]:not(.mobile-menu-open).menu-white .footer_link {
+    color: white;
   }
 }
 

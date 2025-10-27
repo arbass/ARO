@@ -45,6 +45,17 @@ export const menuScrollStyler = () => {
         }
       }
 
+      // Check if menu-nav is flex (mobile menu open)
+      const menuNav = document.querySelector('[menu-nav]');
+      const isMenuNavFlex = menuNav && window.getComputedStyle(menuNav).display === 'flex';
+
+      // Add/remove mobile menu class
+      if (isMenuNavFlex) {
+        mainMenu.classList.add('mobile-menu-open');
+      } else {
+        mainMenu.classList.remove('mobile-menu-open');
+      }
+
       // Only update if state changed
       if (newSection !== currentMenuState) {
         currentMenuState = newSection;
@@ -72,6 +83,25 @@ export const menuScrollStyler = () => {
 
     // Listen for resize events to handle responsive changes
     window.addEventListener('resize', updateMenuColors);
+
+    // Listen for mobile menu state changes
+    const menuNav = document.querySelector('[menu-nav]');
+    if (menuNav) {
+      const observer = new MutationObserver(() => {
+        updateMenuColors();
+      });
+
+      observer.observe(menuNav, {
+        attributes: true,
+        attributeFilter: ['style', 'class'],
+      });
+
+      return () => {
+        window.removeEventListener('scroll', updateMenuColors);
+        window.removeEventListener('resize', updateMenuColors);
+        observer.disconnect();
+      };
+    }
 
     return () => {
       window.removeEventListener('scroll', updateMenuColors);
