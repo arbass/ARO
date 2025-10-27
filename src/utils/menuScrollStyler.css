@@ -1,0 +1,46 @@
+/* Menu Scroll Styler CSS */
+
+/* White menu styles */
+[main-menu].menu-white .footer_link {
+  color: white;
+}
+
+[main-menu].menu-white .menu_logo-link {
+  color: white;
+}
+
+[main-menu].menu-white .burger-line {
+  background-color: white;
+}
+
+/* Navy menu styles */
+[main-menu].menu-navy .footer_link {
+  color: #293F73;
+}
+
+[main-menu].menu-navy .menu_logo-link {
+  color: #293F73;
+}
+
+[main-menu].menu-navy .burger-line {
+  background-color: #293F73;
+}
+
+/* Responsive styles for footer_link - only apply color on 992px and above */
+@media (max-width: 991px) {
+  [main-menu].menu-white .footer_link,
+  [main-menu].menu-navy .footer_link {
+    color: inherit; /* Reset to default color on mobile */
+  }
+}
+
+/* Ensure styles apply on 992px and above */
+@media (min-width: 992px) {
+  [main-menu].menu-white .footer_link {
+    color: white;
+  }
+  
+  [main-menu].menu-navy .footer_link {
+    color: #293F73;
+  }
+}

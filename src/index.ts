@@ -1,7 +1,6 @@
-import { greetUser } from '$utils/greet';
+import { menuScrollStyler } from './utils/menuScrollStyler';
 
 window.Webflow ||= [];
 window.Webflow.push(() => {
-  const name = 'John Doe';
-  greetUser(name);
+  menuScrollStyler();
 });
