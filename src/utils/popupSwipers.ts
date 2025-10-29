@@ -112,10 +112,10 @@ export const popupSwipers = () => {
       const pagination = container.querySelector('.swiper-pagination') as HTMLElement | null;
       if (pagination) pagination.classList.add(unique);
 
-      const nextBtn = container.querySelector('.swiper-button-next') as HTMLElement | null;
+      const nextBtn = container.querySelector('.slider-button-next') as HTMLElement | null;
       if (nextBtn) nextBtn.classList.add(unique);
 
-      const prevBtn = container.querySelector('.swiper-button-prev') as HTMLElement | null;
+      const prevBtn = container.querySelector('.slider-button-prev') as HTMLElement | null;
       if (prevBtn) prevBtn.classList.add(unique);
 
       const scrollbar = container.querySelector('.swiper-scrollbar') as HTMLElement | null;
