@@ -4,6 +4,37 @@ export const popupSwipers = () => {
     return;
   }
 
+  const zeroPad2 = (n: number): string => (n < 9 ? `0${n + 1}.` : `${n + 1}.`);
+
+  const numberAndSyncTextInGrids = () => {
+    const grids = Array.from(document.querySelectorAll('[ar-lab-grid]')) as HTMLElement[];
+    grids.forEach((grid) => {
+      const gridCards = Array.from(grid.querySelectorAll('[card-ar-lab]')) as HTMLElement[];
+      gridCards.forEach((card, index) => {
+        const numEl = card.querySelector('[card-ar-lab_number]') as HTMLElement | null;
+        const titleEl = card.querySelector('[card-ar-lab_title]') as HTMLElement | null;
+        const descEl = card.querySelector('[card-ar-lab_description]') as HTMLElement | null;
+
+        const popup = card.querySelector('[ar-lab_popup]') as HTMLElement | null;
+        const popupNum = popup?.querySelector('[card-ar-lab-popup_number]') as HTMLElement | null;
+        const popupTitle = popup?.querySelector('[card-ar-lab-popup_title]') as HTMLElement | null;
+        const popupDesc = popup?.querySelector(
+          '[card-ar-lab-popup_description]'
+        ) as HTMLElement | null;
+
+        const numbered = zeroPad2(index);
+        if (numEl) numEl.textContent = numbered;
+        if (popupNum) popupNum.textContent = numbered;
+
+        if (titleEl && popupTitle) popupTitle.textContent = titleEl.textContent ?? '';
+        if (descEl && popupDesc) popupDesc.textContent = descEl.textContent ?? '';
+      });
+    });
+  };
+
+  // Priority: number and sync text before any interactive logic
+  numberAndSyncTextInGrids();
+
   type SwiperPublic = { slideNext?: () => void; slidePrev?: () => void };
   const swiperInstances = new WeakMap<HTMLElement, SwiperPublic>();
 
