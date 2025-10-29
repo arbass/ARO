@@ -112,10 +112,10 @@ export const popupSwipers = () => {
       const pagination = container.querySelector('.swiper-pagination') as HTMLElement | null;
       if (pagination) pagination.classList.add(unique);
 
-      const nextBtn = container.querySelector('.swiper-button-next') as HTMLElement | null;
+      const nextBtn = container.querySelector('[swiper-arrow-svg_next]') as HTMLElement | null;
       if (nextBtn) nextBtn.classList.add(unique);
 
-      const prevBtn = container.querySelector('.swiper-button-prev') as HTMLElement | null;
+      const prevBtn = container.querySelector('[swiper-arrow-svg_prev]') as HTMLElement | null;
       if (prevBtn) prevBtn.classList.add(unique);
 
       const scrollbar = container.querySelector('.swiper-scrollbar') as HTMLElement | null;
@@ -144,6 +144,77 @@ export const popupSwipers = () => {
     popup.style.display = 'none';
   };
 
+  const setupArrowInteractions = (popup: HTMLElement) => {
+    const wrapper = popup.querySelector('[swiper-arrow-svg_wrapper]') as HTMLElement | null;
+    if (!wrapper) return;
+
+    const arrowSvg = wrapper.querySelector('[swiper-arrow-svg]') as HTMLElement | null;
+    const prevBtn = wrapper.querySelector('[swiper-arrow-svg_prev]') as HTMLElement | null;
+    const nextBtn = wrapper.querySelector('[swiper-arrow-svg_next]') as HTMLElement | null;
+
+    if (!arrowSvg || !prevBtn || !nextBtn) return;
+
+    // Set initial state and cursor
+    arrowSvg.style.position = 'fixed';
+    arrowSvg.style.pointerEvents = 'none';
+    arrowSvg.style.zIndex = '9999';
+    arrowSvg.style.transform = 'scaleX(1)';
+    arrowSvg.style.cursor = 'none';
+    arrowSvg.style.display = 'none';
+    wrapper.style.cursor = 'none';
+
+    let isOverPrev = false;
+    let isOverNext = false;
+    let currentTransform = 'scaleX(1)';
+
+    const resetArrow = () => {
+      arrowSvg.style.transform = 'scaleX(1)';
+      currentTransform = 'scaleX(1)';
+      isOverPrev = false;
+      isOverNext = false;
+    };
+
+    const flipArrow = () => {
+      arrowSvg.style.transform = 'scaleX(-1)';
+      currentTransform = 'scaleX(-1)';
+      isOverNext = true;
+      isOverPrev = false;
+    };
+
+    const updateArrowPosition = (e: MouseEvent) => {
+      arrowSvg.style.left = `${e.clientX - 16}px`; // Center the 32px SVG
+      arrowSvg.style.top = `${e.clientY - 16}px`;
+      // Restore current transform state
+      arrowSvg.style.transform = currentTransform;
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      updateArrowPosition(e);
+    };
+
+    prevBtn.addEventListener('mouseenter', () => {
+      resetArrow();
+      isOverPrev = true;
+    });
+    
+    nextBtn.addEventListener('mouseenter', () => {
+      flipArrow();
+    });
+
+    wrapper.addEventListener('mouseenter', (e) => {
+      arrowSvg.style.display = 'block';
+      // Set initial position immediately
+      updateArrowPosition(e);
+      wrapper.addEventListener('mousemove', handleMouseMove);
+    });
+
+    wrapper.addEventListener('mouseleave', () => {
+      wrapper.removeEventListener('mousemove', handleMouseMove);
+      resetArrow();
+      arrowSvg.style.display = 'none';
+    });
+  };
+
   cards.forEach((card) => {
     const popup = card.querySelector('[ar-lab_popup]') as HTMLElement | null;
     if (!popup) return;
@@ -159,6 +230,7 @@ export const popupSwipers = () => {
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           initSwipersIn(popup);
+          setupArrowInteractions(popup);
         });
       });
       // Attach keyboard handler (Escape to close, arrows to navigate)
