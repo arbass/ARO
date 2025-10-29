@@ -1,8 +1,26 @@
+const ARROW_HALF_SIZE = 16;
+
+let pointerTrackerInstalled = false;
+let lastPointerPosition: { x: number; y: number } | null = null;
+const arrowCleanupMap = new WeakMap<HTMLElement, () => void>();
+
+const ensurePointerTracker = () => {
+  if (pointerTrackerInstalled) return;
+  pointerTrackerInstalled = true;
+  const updatePosition = (event: PointerEvent) => {
+    lastPointerPosition = { x: event.clientX, y: event.clientY };
+  };
+  document.addEventListener('pointermove', updatePosition);
+  document.addEventListener('pointerdown', updatePosition);
+};
+
 export const popupSwipers = () => {
   const cards = Array.from(document.querySelectorAll('[card-ar-lab]')) as HTMLElement[];
   if (!cards.length) {
     return;
   }
+
+  ensurePointerTracker();
 
   const zeroPad2 = (n: number): string => (n < 9 ? `0${n + 1}.` : `${n + 1}.`);
 
@@ -142,77 +160,111 @@ export const popupSwipers = () => {
 
   const closePopup = (popup: HTMLElement) => {
     popup.style.display = 'none';
+    const cleanup = arrowCleanupMap.get(popup);
+    if (cleanup) {
+      cleanup();
+      arrowCleanupMap.delete(popup);
+    }
   };
 
   const setupArrowInteractions = (popup: HTMLElement) => {
     const wrapper = popup.querySelector('[swiper-arrow-svg_wrapper]') as HTMLElement | null;
-    if (!wrapper) return;
+    if (!wrapper) {
+      arrowCleanupMap.delete(popup);
+      return;
+    }
 
     const arrowSvg = wrapper.querySelector('[swiper-arrow-svg]') as HTMLElement | null;
     const prevBtn = wrapper.querySelector('[swiper-arrow-svg_prev]') as HTMLElement | null;
     const nextBtn = wrapper.querySelector('[swiper-arrow-svg_next]') as HTMLElement | null;
 
-    if (!arrowSvg || !prevBtn || !nextBtn) return;
+    if (!arrowSvg || !prevBtn || !nextBtn) {
+      arrowCleanupMap.delete(popup);
+      return;
+    }
 
-    // Set initial state and cursor
-    arrowSvg.style.position = 'fixed';
-    arrowSvg.style.pointerEvents = 'none';
-    arrowSvg.style.zIndex = '9999';
-    arrowSvg.style.transform = 'scaleX(1)';
-    arrowSvg.style.cursor = 'none';
-    arrowSvg.style.display = 'none';
+    const existingCleanup = arrowCleanupMap.get(popup);
+    if (existingCleanup) {
+      existingCleanup();
+      arrowCleanupMap.delete(popup);
+    }
+
+    const previousWrapperCursor = wrapper.style.cursor;
     wrapper.style.cursor = 'none';
 
-    let isOverPrev = false;
-    let isOverNext = false;
+    const computedColor = window.getComputedStyle(nextBtn).color || window.getComputedStyle(wrapper).color;
+    if (computedColor) {
+      arrowSvg.style.color = computedColor;
+    }
+
+    arrowSvg.style.position = 'fixed';
+    arrowSvg.style.pointerEvents = 'none';
+    arrowSvg.style.zIndex = '2147483647';
+    arrowSvg.style.willChange = 'transform, left, top';
+    arrowSvg.style.display = 'none';
+    arrowSvg.style.cursor = 'none';
+
     let currentTransform = 'scaleX(1)';
 
-    const resetArrow = () => {
-      arrowSvg.style.transform = 'scaleX(1)';
-      currentTransform = 'scaleX(1)';
-      isOverPrev = false;
-      isOverNext = false;
-    };
-
-    const flipArrow = () => {
-      arrowSvg.style.transform = 'scaleX(-1)';
-      currentTransform = 'scaleX(-1)';
-      isOverNext = true;
-      isOverPrev = false;
-    };
-
-    const updateArrowPosition = (e: MouseEvent) => {
-      arrowSvg.style.left = `${e.clientX - 16}px`; // Center the 32px SVG
-      arrowSvg.style.top = `${e.clientY - 16}px`;
-      // Restore current transform state
+    const applyTransform = () => {
       arrowSvg.style.transform = currentTransform;
     };
 
-    const handleMouseMove = (e: MouseEvent) => {
-      updateArrowPosition(e);
+    const applyPosition = (clientX: number, clientY: number) => {
+      const rect = wrapper.getBoundingClientRect();
+      const insideX = clientX >= rect.left && clientX <= rect.right;
+      const insideY = clientY >= rect.top && clientY <= rect.bottom;
+      if (!insideX || !insideY) {
+        arrowSvg.style.display = 'none';
+        return;
+      }
+      arrowSvg.style.display = 'block';
+      arrowSvg.style.left = `${clientX - ARROW_HALF_SIZE}px`;
+      arrowSvg.style.top = `${clientY - ARROW_HALF_SIZE}px`;
+      applyTransform();
     };
 
-    prevBtn.addEventListener('mouseenter', () => {
-      resetArrow();
-      isOverPrev = true;
-    });
-    
-    nextBtn.addEventListener('mouseenter', () => {
-      flipArrow();
-    });
+    const handlePointerMove = (event: PointerEvent) => {
+      applyPosition(event.clientX, event.clientY);
+    };
 
-    wrapper.addEventListener('mouseenter', (e) => {
-      arrowSvg.style.display = 'block';
-      // Set initial position immediately
-      updateArrowPosition(e);
-      wrapper.addEventListener('mousemove', handleMouseMove);
-    });
+    const handlePrevEnter = () => {
+      currentTransform = 'scaleX(1)';
+      applyTransform();
+    };
 
-    wrapper.addEventListener('mouseleave', () => {
-      wrapper.removeEventListener('mousemove', handleMouseMove);
-      resetArrow();
+    const handleNextEnter = () => {
+      currentTransform = 'scaleX(-1)';
+      applyTransform();
+    };
+
+    const handleWrapperLeave = () => {
+      currentTransform = 'scaleX(1)';
+      applyTransform();
       arrowSvg.style.display = 'none';
-    });
+    };
+
+    document.addEventListener('pointermove', handlePointerMove);
+    prevBtn.addEventListener('mouseenter', handlePrevEnter);
+    nextBtn.addEventListener('mouseenter', handleNextEnter);
+    wrapper.addEventListener('mouseleave', handleWrapperLeave);
+
+    if (lastPointerPosition) {
+      applyPosition(lastPointerPosition.x, lastPointerPosition.y);
+    }
+
+    const cleanup = () => {
+      document.removeEventListener('pointermove', handlePointerMove);
+      prevBtn.removeEventListener('mouseenter', handlePrevEnter);
+      nextBtn.removeEventListener('mouseenter', handleNextEnter);
+      wrapper.removeEventListener('mouseleave', handleWrapperLeave);
+      currentTransform = 'scaleX(1)';
+      applyTransform();
+      arrowSvg.style.display = 'none';
+      wrapper.style.cursor = previousWrapperCursor;
+    };
+
+    arrowCleanupMap.set(popup, cleanup);
   };
 
   cards.forEach((card) => {
