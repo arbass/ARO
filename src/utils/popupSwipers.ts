@@ -136,6 +136,36 @@ export const popupSwipers = () => {
     });
   };
 
+  const setupSliderArrowHover = (popup: HTMLElement) => {
+    const wrapper = popup.querySelector('.swiper-buttons-wrpapper') as HTMLElement | null;
+    if (!wrapper) return;
+    if (wrapper.getAttribute('data-hover-initialized') === 'true') return;
+
+    const arrow = wrapper.querySelector('.slider-button-arrow') as HTMLElement | null;
+    const prevBtn = wrapper.querySelector('.slider-button-prev') as HTMLElement | null;
+    const nextBtn = wrapper.querySelector('.slider-button-next') as HTMLElement | null;
+    if (!arrow || !prevBtn || !nextBtn) return;
+
+    arrow.style.setProperty('transition', 'none', 'important');
+    arrow.style.setProperty('transform', 'rotateY(0deg)', 'important');
+
+    const onPrevEnter = () => {
+      arrow.style.setProperty('transform', 'rotateY(0deg)', 'important');
+    };
+    const onNextEnter = () => {
+      arrow.style.setProperty('transform', 'rotateY(180deg)', 'important');
+    };
+    const onWrapperLeave = () => {
+      arrow.style.setProperty('transform', 'rotateY(0deg)', 'important');
+    };
+
+    prevBtn.addEventListener('mouseenter', onPrevEnter);
+    nextBtn.addEventListener('mouseenter', onNextEnter);
+    wrapper.addEventListener('mouseleave', onWrapperLeave);
+
+    wrapper.setAttribute('data-hover-initialized', 'true');
+  };
+
   const openPopup = (popup: HTMLElement) => {
     popup.style.display = 'flex';
   };
@@ -159,6 +189,7 @@ export const popupSwipers = () => {
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           initSwipersIn(popup);
+          setupSliderArrowHover(popup);
         });
       });
       // Attach keyboard handler (Escape to close, arrows to navigate)
