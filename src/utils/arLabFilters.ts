@@ -38,12 +38,48 @@ export const arLabFilters = () => {
   // Track selected filters
   const selectedFilters = new Set<string>();
 
+  // Function to recalculate grid positions for visible cards
+  const recalculateGridPositions = () => {
+    const visibleCards: HTMLElement[] = [];
+    
+    allCards.forEach((card) => {
+      const cardElement = card as HTMLElement;
+      if (cardElement.style.display !== 'none') {
+        visibleCards.push(cardElement);
+      }
+    });
+
+    // Apply grid-column styles based on visible card index
+    visibleCards.forEach((card, index) => {
+      const position = (index % 3) + 1; // 1, 2, or 3
+      
+      let gridColumnValue = '';
+      
+      if (position === 1) {
+        // cols 1-2
+        gridColumnValue = '1 / span 2';
+      } else if (position === 2) {
+        // cols 4-5
+        gridColumnValue = '4 / span 2';
+      } else {
+        // cols 7-8
+        gridColumnValue = '7 / span 2';
+      }
+      
+      // Use setProperty with 'important' to override CSS !important rules
+      card.style.setProperty('grid-column', gridColumnValue, 'important');
+    });
+  };
+
   // Function to filter cards based on selected filters
   const filterCards = () => {
     if (selectedFilters.size === 0) {
       // Show all cards if no filters selected
       allCards.forEach((card) => {
-        (card as HTMLElement).style.display = '';
+        const cardElement = card as HTMLElement;
+        cardElement.style.display = '';
+        // Reset grid-column to let CSS handle it
+        cardElement.style.removeProperty('grid-column');
       });
       console.log('arLabFilters: Showing all cards (no filters selected)');
     } else {
@@ -62,6 +98,9 @@ export const arLabFilters = () => {
         (card as HTMLElement).style.display = hasMatchingTag ? '' : 'none';
       });
       console.log('arLabFilters: Filtered cards by:', Array.from(selectedFilters));
+      
+      // Recalculate grid positions for visible cards
+      recalculateGridPositions();
     }
   };
 
