@@ -288,8 +288,12 @@ export const popupSwipers = () => {
           containers.forEach((c) => {
             const api = swiperInstances.get(c);
             if (!api) return;
-            if (e.key === 'ArrowRight' && api.slideNext) api.slideNext();
-            if (e.key === 'ArrowLeft' && api.slidePrev) api.slidePrev();
+            if (e.key === 'ArrowRight' && !api.isEnd && api.slideNext) {
+              api.slideNext();
+            }
+            if (e.key === 'ArrowLeft' && !api.isBeginning && api.slidePrev) {
+              api.slidePrev();
+            }
           });
           e.preventDefault();
         }
