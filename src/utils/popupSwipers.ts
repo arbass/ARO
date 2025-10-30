@@ -35,7 +35,13 @@ export const popupSwipers = () => {
   // Priority: number and sync text before any interactive logic
   numberAndSyncTextInGrids();
 
-  type SwiperPublic = { slideNext?: () => void; slidePrev?: () => void };
+  type SwiperPublic = {
+    slideNext?: () => void;
+    slidePrev?: () => void;
+    slideTo?: (index: number, speed?: number, runCallbacks?: boolean, internal?: boolean) => void;
+    isBeginning?: boolean;
+    isEnd?: boolean;
+  };
   const swiperInstances = new WeakMap<HTMLElement, SwiperPublic>();
 
   let assetsLoaded = false;
@@ -149,6 +155,10 @@ export const popupSwipers = () => {
     const nextBtn = wrapper.querySelector('.slider-button-next') as HTMLElement | null;
     if (!arrow || !prevBtn || !nextBtn) return;
 
+    // Find associated swiper instance for boundary checks
+    const container = wrapper.closest('.swiper') as HTMLElement | null;
+    const instance = container ? swiperInstances.get(container) : undefined;
+
     // Ensure instant orientation change and prepare for following the cursor
     arrow.style.setProperty('transition', 'none', 'important');
     arrow.style.setProperty('animation', 'none', 'important');
@@ -159,16 +169,32 @@ export const popupSwipers = () => {
     arrow.style.opacity = '0';
 
     // Hide system cursor only within the buttons wrapper
-    const prevCursor = wrapper.style.cursor;
     wrapper.style.cursor = 'none';
 
     const HALF = 16; // half of 32px SVG
 
+    let currentHover: 'prev' | 'next' | null = null;
+
+    const updateOrientation = () => {
+      if (!instance) return;
+      if (currentHover === 'next') {
+        const direction = instance.isEnd ? 'rotateY(0deg)' : 'rotateY(180deg)';
+        arrow.style.setProperty('transform', direction, 'important');
+      } else if (currentHover === 'prev') {
+        const direction = instance.isBeginning ? 'rotateY(180deg)' : 'rotateY(0deg)';
+        arrow.style.setProperty('transform', direction, 'important');
+      } else {
+        arrow.style.setProperty('transform', 'rotateY(0deg)', 'important');
+      }
+    };
+
     const onPrevEnter = () => {
-      arrow.style.setProperty('transform', 'rotateY(0deg)', 'important');
+      currentHover = 'prev';
+      updateOrientation();
     };
     const onNextEnter = () => {
-      arrow.style.setProperty('transform', 'rotateY(180deg)', 'important');
+      currentHover = 'next';
+      updateOrientation();
     };
 
     const updatePositionRelativeToWrapper = (clientX: number, clientY: number) => {
@@ -177,6 +203,8 @@ export const popupSwipers = () => {
       const y = clientY - rect.top - HALF;
       arrow.style.left = `${x}px`;
       arrow.style.top = `${y}px`;
+      // Ensure orientation reflects current boundary while moving
+      if (currentHover) updateOrientation();
     };
 
     const onPointerMove = (e: PointerEvent) => {
@@ -193,7 +221,8 @@ export const popupSwipers = () => {
     const onWrapperLeave = () => {
       document.removeEventListener('pointermove', onPointerMove);
       arrow.style.opacity = '0';
-      arrow.style.setProperty('transform', 'rotateY(0deg)', 'important');
+      currentHover = null;
+      updateOrientation();
     };
 
     prevBtn.addEventListener('mouseenter', onPrevEnter);
