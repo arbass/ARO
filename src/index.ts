@@ -3,6 +3,7 @@ import { menuVisibilityController } from './utils/menuVisibilityController';
 import { anyVisualBeforeAfter } from './utils/anyVisualBeforeAfter';
 import { popupSwipers } from './utils/popupSwipers';
 import { currentYearUpdater } from './utils/currentYearUpdater';
+import { cardCounterUpdater } from './utils/cardCounterUpdater';
 
 window.Webflow ||= [];
 window.Webflow.push(() => {
@@ -11,4 +12,5 @@ window.Webflow.push(() => {
   anyVisualBeforeAfter();
   popupSwipers();
   currentYearUpdater();
+  cardCounterUpdater();
 });
