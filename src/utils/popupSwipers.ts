@@ -153,9 +153,8 @@ export const popupSwipers = () => {
     arrow.style.setProperty('transition', 'none', 'important');
     arrow.style.setProperty('animation', 'none', 'important');
     arrow.style.setProperty('transform', 'rotateY(0deg)', 'important');
-    arrow.style.position = 'fixed';
+    arrow.style.position = 'absolute';
     arrow.style.pointerEvents = 'none';
-    arrow.style.zIndex = '2147483647';
     arrow.style.willChange = 'transform, left, top, opacity';
     arrow.style.opacity = '0';
 
@@ -172,16 +171,22 @@ export const popupSwipers = () => {
       arrow.style.setProperty('transform', 'rotateY(180deg)', 'important');
     };
 
+    const updatePositionRelativeToWrapper = (clientX: number, clientY: number) => {
+      const rect = wrapper.getBoundingClientRect();
+      const x = clientX - rect.left - HALF;
+      const y = clientY - rect.top - HALF;
+      arrow.style.left = `${x}px`;
+      arrow.style.top = `${y}px`;
+    };
+
     const onPointerMove = (e: PointerEvent) => {
-      arrow.style.left = `${e.clientX - HALF}px`;
-      arrow.style.top = `${e.clientY - HALF}px`;
+      updatePositionRelativeToWrapper(e.clientX, e.clientY);
     };
 
     const onWrapperEnter = (e: MouseEvent) => {
       // Show instantly and set starting position
       arrow.style.opacity = '1';
-      arrow.style.left = `${e.clientX - HALF}px`;
-      arrow.style.top = `${e.clientY - HALF}px`;
+      updatePositionRelativeToWrapper(e.clientX, e.clientY);
       document.addEventListener('pointermove', onPointerMove);
     };
 
@@ -206,8 +211,7 @@ export const popupSwipers = () => {
         initialPoint.y <= rect.bottom
       ) {
         arrow.style.opacity = '1';
-        arrow.style.left = `${initialPoint.x - HALF}px`;
-        arrow.style.top = `${initialPoint.y - HALF}px`;
+        updatePositionRelativeToWrapper(initialPoint.x, initialPoint.y);
         document.addEventListener('pointermove', onPointerMove);
       }
     }
