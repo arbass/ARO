@@ -146,8 +146,15 @@ export const popupSwipers = () => {
     const nextBtn = wrapper.querySelector('.slider-button-next') as HTMLElement | null;
     if (!arrow || !prevBtn || !nextBtn) return;
 
+    // Ensure instant orientation change and prepare for following the cursor
     arrow.style.setProperty('transition', 'none', 'important');
     arrow.style.setProperty('transform', 'rotateY(0deg)', 'important');
+    arrow.style.position = 'fixed';
+    arrow.style.pointerEvents = 'none';
+    arrow.style.zIndex = '2147483647';
+    arrow.style.willChange = 'transform, left, top, opacity';
+
+    const HALF = 16; // half of 32px SVG
 
     const onPrevEnter = () => {
       arrow.style.setProperty('transform', 'rotateY(0deg)', 'important');
@@ -157,10 +164,24 @@ export const popupSwipers = () => {
     };
     const onWrapperLeave = () => {
       arrow.style.setProperty('transform', 'rotateY(0deg)', 'important');
+      arrow.style.opacity = '0';
+      wrapper.removeEventListener('mousemove', onMouseMove);
+    };
+
+    const onMouseMove = (e: MouseEvent) => {
+      arrow.style.left = `${e.clientX - HALF}px`;
+      arrow.style.top = `${e.clientY - HALF}px`;
+    };
+
+    const onWrapperEnter = (e: MouseEvent) => {
+      arrow.style.opacity = '1';
+      onMouseMove(e);
+      wrapper.addEventListener('mousemove', onMouseMove);
     };
 
     prevBtn.addEventListener('mouseenter', onPrevEnter);
     nextBtn.addEventListener('mouseenter', onNextEnter);
+    wrapper.addEventListener('mouseenter', onWrapperEnter as EventListener);
     wrapper.addEventListener('mouseleave', onWrapperLeave);
 
     wrapper.setAttribute('data-hover-initialized', 'true');
