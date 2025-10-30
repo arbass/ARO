@@ -4,6 +4,7 @@ import { anyVisualBeforeAfter } from './utils/anyVisualBeforeAfter';
 import { popupSwipers } from './utils/popupSwipers';
 import { currentYearUpdater } from './utils/currentYearUpdater';
 import { cardCounterUpdater } from './utils/cardCounterUpdater';
+import { arLabFilters } from './utils/arLabFilters';
 
 window.Webflow ||= [];
 window.Webflow.push(() => {
@@ -13,4 +14,5 @@ window.Webflow.push(() => {
   popupSwipers();
   currentYearUpdater();
   cardCounterUpdater();
+  arLabFilters();
 });
