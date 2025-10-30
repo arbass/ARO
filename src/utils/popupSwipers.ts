@@ -230,6 +230,39 @@ export const popupSwipers = () => {
     wrapper.addEventListener('mouseenter', onWrapperEnter as EventListener);
     wrapper.addEventListener('mouseleave', onWrapperLeave);
 
+    // Handle clicks on disabled buttons: step one slide inward instead of doing nothing
+    const onPrevClickCapture = (event: Event) => {
+      if (!instance) return;
+      // Only intercept if button is actually disabled
+      if (prevBtn.classList.contains('swiper-button-disabled')) {
+        event.preventDefault();
+        event.stopPropagation();
+        // From first slide, go to second
+        if (typeof instance.slideNext === 'function') {
+          instance.slideNext();
+        }
+      }
+      // Otherwise let Swiper handle it natively
+    };
+
+    const onNextClickCapture = (event: Event) => {
+      if (!instance) return;
+      // Only intercept if button is actually disabled
+      if (nextBtn.classList.contains('swiper-button-disabled')) {
+        event.preventDefault();
+        event.stopPropagation();
+        // From last slide, go to previous
+        if (typeof instance.slidePrev === 'function') {
+          instance.slidePrev();
+        }
+      }
+      // Otherwise let Swiper handle it natively
+    };
+
+    // Use capture phase to intercept before Swiper's handlers
+    prevBtn.addEventListener('click', onPrevClickCapture, true);
+    nextBtn.addEventListener('click', onNextClickCapture, true);
+
     // If pointer is already over wrapper at open, start immediately
     if (initialPoint) {
       const rect = wrapper.getBoundingClientRect();
