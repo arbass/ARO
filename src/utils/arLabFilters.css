@@ -1,0 +1,10 @@
+/* Smooth transitions for AR Lab cards filtering */
+[card-ar-lab] {
+  transition: opacity 200ms ease, transform 200ms ease;
+}
+
+[card-ar-lab].is-filtering-out {
+  opacity: 0;
+  transform: scale(0.95);
+}
+

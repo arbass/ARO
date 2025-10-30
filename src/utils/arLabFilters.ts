@@ -1,3 +1,5 @@
+import './arLabFilters.css';
+
 export const arLabFilters = () => {
   const allCards = document.querySelectorAll('[card-ar-lab]');
   if (!allCards.length) {
@@ -7,7 +9,7 @@ export const arLabFilters = () => {
 
   const filterForm = document.querySelector('#email-form');
   const templateCheckbox = document.querySelector('.w-checkbox.checkbox');
-  
+
   if (!filterForm || !templateCheckbox) {
     console.log('arLabFilters: Filter form or template checkbox not found');
     return;
@@ -17,13 +19,13 @@ export const arLabFilters = () => {
 
   // Extract all unique categories from cards
   const categoriesSet = new Set<string>();
-  
+
   allCards.forEach((card) => {
     const filterTags = card.getAttribute('filter-tags');
     if (filterTags) {
       // Split by comma and trim whitespace
-      const tags = filterTags.split(',').map(tag => tag.trim());
-      tags.forEach(tag => {
+      const tags = filterTags.split(',').map((tag) => tag.trim());
+      tags.forEach((tag) => {
         if (tag) categoriesSet.add(tag);
       });
     }
@@ -50,7 +52,7 @@ export const arLabFilters = () => {
     }
 
     const visibleCards: HTMLElement[] = [];
-    
+
     allCards.forEach((card) => {
       const cardElement = card as HTMLElement;
       if (cardElement.style.display !== 'none') {
@@ -61,9 +63,9 @@ export const arLabFilters = () => {
     // Apply grid-column styles based on visible card index
     visibleCards.forEach((card, index) => {
       const position = (index % 3) + 1; // 1, 2, or 3
-      
+
       let gridColumnValue = '';
-      
+
       if (position === 1) {
         // cols 1-2
         gridColumnValue = '1 / span 2';
@@ -74,49 +76,109 @@ export const arLabFilters = () => {
         // cols 7-8
         gridColumnValue = '7 / span 2';
       }
-      
+
       // Use setProperty with 'important' to override CSS !important rules
       card.style.setProperty('grid-column', gridColumnValue, 'important');
     });
   };
 
-  // Function to filter cards based on selected filters
+  // Function to filter cards based on selected filters with smooth animations
   const filterCards = () => {
+    const ANIMATION_DURATION = 200; // ms
+
     if (selectedFilters.size === 0) {
       // Show all cards if no filters selected
       allCards.forEach((card) => {
         const cardElement = card as HTMLElement;
-        cardElement.style.display = '';
+
+        // If card was hidden, animate it in
+        if (cardElement.style.display === 'none') {
+          cardElement.style.display = '';
+          cardElement.classList.add('is-filtering-out');
+
+          // Remove animation class after display is set
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              cardElement.classList.remove('is-filtering-out');
+            });
+          });
+        }
+
         // Reset grid-column to let CSS handle it
         cardElement.style.removeProperty('grid-column');
       });
       console.log('arLabFilters: Showing all cards (no filters selected)');
+
+      // Recalculate grid after animation
+      setTimeout(() => {
+        recalculateGridPositions();
+      }, ANIMATION_DURATION);
     } else {
-      // Filter cards based on selected categories
+      // Determine which cards to show/hide
+      const cardsToHide: HTMLElement[] = [];
+      const cardsToShow: HTMLElement[] = [];
+
       allCards.forEach((card) => {
         const filterTags = card.getAttribute('filter-tags');
         const cardElement = card as HTMLElement;
-        
+
         if (!filterTags) {
-          cardElement.style.display = 'none';
+          cardsToHide.push(cardElement);
           return;
         }
 
-        const cardTags = filterTags.split(',').map(tag => tag.trim());
-        // Show card if it has at least one of the selected filters
-        const hasMatchingTag = cardTags.some(tag => selectedFilters.has(tag));
-        
-        cardElement.style.display = hasMatchingTag ? '' : 'none';
-        
-        // Clean up grid-column styles on tablet/mobile
-        if (!isDesktop()) {
-          cardElement.style.removeProperty('grid-column');
+        const cardTags = filterTags.split(',').map((tag) => tag.trim());
+        const hasMatchingTag = cardTags.some((tag) => selectedFilters.has(tag));
+
+        if (hasMatchingTag) {
+          cardsToShow.push(cardElement);
+        } else {
+          cardsToHide.push(cardElement);
         }
       });
+
+      // Animate out cards that need to be hidden
+      cardsToHide.forEach((card) => {
+        if (card.style.display !== 'none') {
+          card.classList.add('is-filtering-out');
+
+          setTimeout(() => {
+            card.style.display = 'none';
+            card.classList.remove('is-filtering-out');
+          }, ANIMATION_DURATION);
+        }
+      });
+
+      // Animate in cards that need to be shown
+      cardsToShow.forEach((card) => {
+        if (card.style.display === 'none') {
+          card.style.display = '';
+          card.classList.add('is-filtering-out');
+
+          // Clean up grid-column styles on tablet/mobile
+          if (!isDesktop()) {
+            card.style.removeProperty('grid-column');
+          }
+
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              card.classList.remove('is-filtering-out');
+            });
+          });
+        } else {
+          // Card already visible, just ensure grid is clean on mobile
+          if (!isDesktop()) {
+            card.style.removeProperty('grid-column');
+          }
+        }
+      });
+
       console.log('arLabFilters: Filtered cards by:', Array.from(selectedFilters));
-      
-      // Recalculate grid positions for visible cards (desktop only)
-      recalculateGridPositions();
+
+      // Recalculate grid positions after animation completes
+      setTimeout(() => {
+        recalculateGridPositions();
+      }, ANIMATION_DURATION);
     }
   };
 
@@ -130,7 +192,7 @@ export const arLabFilters = () => {
     const checkboxId = `filter-${category.toLowerCase().replace(/\s+/g, '-')}-${index}`;
     checkbox.id = checkboxId;
     checkbox.name = checkboxId;
-    
+
     // Set label text
     if (label) {
       label.textContent = category;
@@ -173,4 +235,3 @@ export const arLabFilters = () => {
     }, 150);
   });
 };
-
