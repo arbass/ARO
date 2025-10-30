@@ -136,7 +136,10 @@ export const popupSwipers = () => {
     });
   };
 
-  const setupSliderArrowHover = (popup: HTMLElement) => {
+  const setupSliderArrowHover = (
+    popup: HTMLElement,
+    initialPoint?: { x: number; y: number }
+  ) => {
     const wrapper = popup.querySelector('.swiper-buttons-wrpapper') as HTMLElement | null;
     if (!wrapper) return;
     if (wrapper.getAttribute('data-hover-initialized') === 'true') return;
@@ -148,11 +151,17 @@ export const popupSwipers = () => {
 
     // Ensure instant orientation change and prepare for following the cursor
     arrow.style.setProperty('transition', 'none', 'important');
+    arrow.style.setProperty('animation', 'none', 'important');
     arrow.style.setProperty('transform', 'rotateY(0deg)', 'important');
     arrow.style.position = 'fixed';
     arrow.style.pointerEvents = 'none';
     arrow.style.zIndex = '2147483647';
     arrow.style.willChange = 'transform, left, top, opacity';
+    arrow.style.opacity = '0';
+
+    // Hide system cursor only within the buttons wrapper
+    const prevCursor = wrapper.style.cursor;
+    wrapper.style.cursor = 'none';
 
     const HALF = 16; // half of 32px SVG
 
@@ -162,21 +171,24 @@ export const popupSwipers = () => {
     const onNextEnter = () => {
       arrow.style.setProperty('transform', 'rotateY(180deg)', 'important');
     };
-    const onWrapperLeave = () => {
-      arrow.style.setProperty('transform', 'rotateY(0deg)', 'important');
-      arrow.style.opacity = '0';
-      wrapper.removeEventListener('mousemove', onMouseMove);
-    };
 
-    const onMouseMove = (e: MouseEvent) => {
+    const onPointerMove = (e: PointerEvent) => {
       arrow.style.left = `${e.clientX - HALF}px`;
       arrow.style.top = `${e.clientY - HALF}px`;
     };
 
     const onWrapperEnter = (e: MouseEvent) => {
+      // Show instantly and set starting position
       arrow.style.opacity = '1';
-      onMouseMove(e);
-      wrapper.addEventListener('mousemove', onMouseMove);
+      arrow.style.left = `${e.clientX - HALF}px`;
+      arrow.style.top = `${e.clientY - HALF}px`;
+      document.addEventListener('pointermove', onPointerMove);
+    };
+
+    const onWrapperLeave = () => {
+      document.removeEventListener('pointermove', onPointerMove);
+      arrow.style.opacity = '0';
+      arrow.style.setProperty('transform', 'rotateY(0deg)', 'important');
     };
 
     prevBtn.addEventListener('mouseenter', onPrevEnter);
@@ -184,6 +196,23 @@ export const popupSwipers = () => {
     wrapper.addEventListener('mouseenter', onWrapperEnter as EventListener);
     wrapper.addEventListener('mouseleave', onWrapperLeave);
 
+    // If pointer is already over wrapper at open, start immediately
+    if (initialPoint) {
+      const rect = wrapper.getBoundingClientRect();
+      if (
+        initialPoint.x >= rect.left &&
+        initialPoint.x <= rect.right &&
+        initialPoint.y >= rect.top &&
+        initialPoint.y <= rect.bottom
+      ) {
+        arrow.style.opacity = '1';
+        arrow.style.left = `${initialPoint.x - HALF}px`;
+        arrow.style.top = `${initialPoint.y - HALF}px`;
+        document.addEventListener('pointermove', onPointerMove);
+      }
+    }
+
+    // Mark as initialized
     wrapper.setAttribute('data-hover-initialized', 'true');
   };
 
@@ -210,7 +239,8 @@ export const popupSwipers = () => {
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           initSwipersIn(popup);
-          setupSliderArrowHover(popup);
+          const clickEvt = evt as MouseEvent;
+          setupSliderArrowHover(popup, { x: clickEvt.clientX, y: clickEvt.clientY });
         });
       });
       // Attach keyboard handler (Escape to close, arrows to navigate)
