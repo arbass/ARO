@@ -38,8 +38,17 @@ export const arLabFilters = () => {
   // Track selected filters
   const selectedFilters = new Set<string>();
 
+  // Check if desktop screen size (992px+)
+  const isDesktop = () => window.innerWidth >= 992;
+
   // Function to recalculate grid positions for visible cards
   const recalculateGridPositions = () => {
+    // Only apply grid positions on desktop
+    if (!isDesktop()) {
+      console.log('arLabFilters: Tablet/mobile detected, skipping grid recalculation');
+      return;
+    }
+
     const visibleCards: HTMLElement[] = [];
     
     allCards.forEach((card) => {
@@ -86,8 +95,10 @@ export const arLabFilters = () => {
       // Filter cards based on selected categories
       allCards.forEach((card) => {
         const filterTags = card.getAttribute('filter-tags');
+        const cardElement = card as HTMLElement;
+        
         if (!filterTags) {
-          (card as HTMLElement).style.display = 'none';
+          cardElement.style.display = 'none';
           return;
         }
 
@@ -95,11 +106,16 @@ export const arLabFilters = () => {
         // Show card if it has at least one of the selected filters
         const hasMatchingTag = cardTags.some(tag => selectedFilters.has(tag));
         
-        (card as HTMLElement).style.display = hasMatchingTag ? '' : 'none';
+        cardElement.style.display = hasMatchingTag ? '' : 'none';
+        
+        // Clean up grid-column styles on tablet/mobile
+        if (!isDesktop()) {
+          cardElement.style.removeProperty('grid-column');
+        }
       });
       console.log('arLabFilters: Filtered cards by:', Array.from(selectedFilters));
       
-      // Recalculate grid positions for visible cards
+      // Recalculate grid positions for visible cards (desktop only)
       recalculateGridPositions();
     }
   };
@@ -136,5 +152,25 @@ export const arLabFilters = () => {
   });
 
   console.log(`arLabFilters: Created ${categories.length} filter checkboxes`);
+
+  // Handle window resize to adjust grid positions
+  let resizeTimeout: number;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = window.setTimeout(() => {
+      // If filters are active, recalculate positions
+      if (selectedFilters.size > 0) {
+        if (isDesktop()) {
+          recalculateGridPositions();
+        } else {
+          // On tablet/mobile, remove all grid-column overrides
+          allCards.forEach((card) => {
+            (card as HTMLElement).style.removeProperty('grid-column');
+          });
+          console.log('arLabFilters: Switched to tablet/mobile, removed grid overrides');
+        }
+      }
+    }, 150);
+  });
 };
 
