@@ -41,6 +41,9 @@ export const popupSwipers = () => {
     slideTo?: (index: number, speed?: number, runCallbacks?: boolean, internal?: boolean) => void;
     isBeginning?: boolean;
     isEnd?: boolean;
+    activeIndex?: number;
+    slides?: { length: number };
+    on?: (event: string, handler: () => void) => void;
   };
   const swiperInstances = new WeakMap<HTMLElement, SwiperPublic>();
 
@@ -175,13 +178,32 @@ export const popupSwipers = () => {
 
     let currentHover: 'prev' | 'next' | null = null;
 
+    const getSlideCount = (): number => {
+      return instance?.slides?.length ?? 0;
+    };
+
+    const getCurrentIndex = (): number => {
+      return instance?.activeIndex ?? 0;
+    };
+
+    const willBeAtStart = (): boolean => {
+      const idx = getCurrentIndex();
+      return idx === 0;
+    };
+
+    const willBeAtEnd = (): boolean => {
+      const idx = getCurrentIndex();
+      const count = getSlideCount();
+      return count > 0 && idx === count - 1;
+    };
+
     const updateOrientation = () => {
       if (!instance) return;
       if (currentHover === 'next') {
-        const direction = instance.isEnd ? 'rotateY(0deg)' : 'rotateY(180deg)';
+        const direction = willBeAtEnd() ? 'rotateY(0deg)' : 'rotateY(180deg)';
         arrow.style.setProperty('transform', direction, 'important');
       } else if (currentHover === 'prev') {
-        const direction = instance.isBeginning ? 'rotateY(180deg)' : 'rotateY(0deg)';
+        const direction = willBeAtStart() ? 'rotateY(180deg)' : 'rotateY(0deg)';
         arrow.style.setProperty('transform', direction, 'important');
       } else {
         arrow.style.setProperty('transform', 'rotateY(0deg)', 'important');
@@ -262,6 +284,16 @@ export const popupSwipers = () => {
     // Use capture phase to intercept before Swiper's handlers
     prevBtn.addEventListener('click', onPrevClickCapture, true);
     nextBtn.addEventListener('click', onNextClickCapture, true);
+
+    // Subscribe to Swiper slideChange event for instant orientation updates
+    if (instance && typeof instance.on === 'function') {
+      instance.on('slideChange', () => {
+        // Update orientation immediately when slide starts changing
+        if (currentHover) {
+          requestAnimationFrame(updateOrientation);
+        }
+      });
+    }
 
     // If pointer is already over wrapper at open, start immediately
     if (initialPoint) {
