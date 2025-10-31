@@ -182,6 +182,28 @@ export const arLabFilters = () => {
     }
   };
 
+  // Function to reorder checkboxes (active ones first)
+  const reorderCheckboxes = () => {
+    const checkboxWrappers = Array.from(filterForm.querySelectorAll('.w-checkbox.checkbox')) as HTMLElement[];
+    
+    // Sort: active first (is-active class), then by original order
+    checkboxWrappers.sort((a, b) => {
+      const aActive = a.classList.contains('is-active');
+      const bActive = b.classList.contains('is-active');
+      const aOrder = parseInt(a.getAttribute('data-original-order') || '0');
+      const bOrder = parseInt(b.getAttribute('data-original-order') || '0');
+      
+      if (aActive && !bActive) return -1;
+      if (!aActive && bActive) return 1;
+      return aOrder - bOrder;
+    });
+    
+    // Reappend in new order (DOM will handle the smooth transition via CSS)
+    checkboxWrappers.forEach(wrapper => {
+      filterForm.appendChild(wrapper);
+    });
+  };
+
   // Create checkbox for each category
   categories.forEach((category, index) => {
     const checkboxWrapper = templateCheckbox.cloneNode(true) as HTMLElement;
@@ -192,6 +214,10 @@ export const arLabFilters = () => {
     const checkboxId = `filter-${category.toLowerCase().replace(/\s+/g, '-')}-${index}`;
     checkbox.id = checkboxId;
     checkbox.name = checkboxId;
+    
+    // Store original order for later sorting
+    checkboxWrapper.setAttribute('data-original-order', index.toString());
+    checkboxWrapper.setAttribute('data-category', category);
 
     // Set label text
     if (label) {
@@ -204,9 +230,16 @@ export const arLabFilters = () => {
       const target = e.target as HTMLInputElement;
       if (target.checked) {
         selectedFilters.add(category);
+        checkboxWrapper.classList.add('is-active');
       } else {
         selectedFilters.delete(category);
+        checkboxWrapper.classList.remove('is-active');
       }
+      
+      // Reorder checkboxes with animation
+      reorderCheckboxes();
+      
+      // Filter cards
       filterCards();
     });
 
