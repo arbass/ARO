@@ -5,6 +5,7 @@ import { popupSwipers } from './utils/popupSwipers';
 import { currentYearUpdater } from './utils/currentYearUpdater';
 import { cardCounterUpdater } from './utils/cardCounterUpdater';
 import { arLabFilters } from './utils/arLabFilters';
+import { studioSwipers } from './utils/studioSwipers';
 
 window.Webflow ||= [];
 window.Webflow.push(() => {
@@ -15,4 +16,5 @@ window.Webflow.push(() => {
   currentYearUpdater();
   cardCounterUpdater();
   arLabFilters();
+  studioSwipers();
 });
