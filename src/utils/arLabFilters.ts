@@ -236,6 +236,13 @@ export const arLabFilters = () => {
         checkboxWrapper.classList.remove('is-active');
       }
       
+      // Update opacity state based on active filters
+      if (selectedFilters.size > 0) {
+        filterForm.classList.add('has-active-filters');
+      } else {
+        filterForm.classList.remove('has-active-filters');
+      }
+      
       // Reorder checkboxes with animation
       reorderCheckboxes();
       

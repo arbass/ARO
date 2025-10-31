@@ -23,3 +23,12 @@
   order: -1;
 }
 
+/* Opacity management when filters are active */
+.filter-checkbox-list.has-active-filters .w-checkbox.checkbox {
+  opacity: 0.5;
+}
+
+.filter-checkbox-list.has-active-filters .w-checkbox.checkbox.is-active {
+  opacity: 1;
+}
+
