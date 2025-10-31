@@ -171,8 +171,9 @@ export const popupSwipers = () => {
     arrow.style.willChange = 'transform, left, top, opacity';
     arrow.style.opacity = '0';
 
-    // Hide system cursor only within the buttons wrapper
-    wrapper.style.cursor = 'none';
+    // Initially hide system cursor on buttons
+    prevBtn.style.cursor = 'none';
+    nextBtn.style.cursor = 'none';
 
     const HALF = 16; // half of 32px SVG
 
@@ -199,12 +200,34 @@ export const popupSwipers = () => {
 
     const updateOrientation = () => {
       if (!instance) return;
+      
+      // Check if we're hovering over a disabled button
+      const isPrevDisabled = prevBtn.classList.contains('swiper-button-disabled');
+      const isNextDisabled = nextBtn.classList.contains('swiper-button-disabled');
+      
+      if (currentHover === 'next' && isNextDisabled) {
+        // Hide custom arrow and show default cursor
+        arrow.style.opacity = '0';
+        nextBtn.style.cursor = 'default';
+        return;
+      } else if (currentHover === 'prev' && isPrevDisabled) {
+        // Hide custom arrow and show default cursor
+        arrow.style.opacity = '0';
+        prevBtn.style.cursor = 'default';
+        return;
+      }
+      
+      // Restore custom cursor behavior - hide system cursor on buttons
+      prevBtn.style.cursor = 'none';
+      nextBtn.style.cursor = 'none';
+      if (arrow.style.display !== 'none') {
+        arrow.style.opacity = '1';
+      }
+      
       if (currentHover === 'next') {
-        const direction = willBeAtEnd() ? 'rotateY(0deg)' : 'rotateY(180deg)';
-        arrow.style.setProperty('transform', direction, 'important');
+        arrow.style.setProperty('transform', 'rotateY(180deg)', 'important');
       } else if (currentHover === 'prev') {
-        const direction = willBeAtStart() ? 'rotateY(180deg)' : 'rotateY(0deg)';
-        arrow.style.setProperty('transform', direction, 'important');
+        arrow.style.setProperty('transform', 'rotateY(0deg)', 'important');
       } else {
         arrow.style.setProperty('transform', 'rotateY(0deg)', 'important');
       }
@@ -217,6 +240,18 @@ export const popupSwipers = () => {
     const onNextEnter = () => {
       currentHover = 'next';
       updateOrientation();
+    };
+    const onPrevLeave = () => {
+      if (currentHover === 'prev') {
+        arrow.style.opacity = '0';
+        currentHover = null;
+      }
+    };
+    const onNextLeave = () => {
+      if (currentHover === 'next') {
+        arrow.style.opacity = '0';
+        currentHover = null;
+      }
     };
 
     const updatePositionRelativeToWrapper = (clientX: number, clientY: number) => {
@@ -240,50 +275,31 @@ export const popupSwipers = () => {
       document.addEventListener('pointermove', onPointerMove);
     };
 
-    const onWrapperLeave = () => {
-      document.removeEventListener('pointermove', onPointerMove);
-      arrow.style.opacity = '0';
-      currentHover = null;
-      updateOrientation();
+    const onWrapperLeave = (e: MouseEvent) => {
+      // Check if we're really leaving the wrapper (not just moving between buttons)
+      const rect = wrapper.getBoundingClientRect();
+      const isStillInside =
+        e.clientX >= rect.left &&
+        e.clientX <= rect.right &&
+        e.clientY >= rect.top &&
+        e.clientY <= rect.bottom;
+      
+      if (!isStillInside) {
+        document.removeEventListener('pointermove', onPointerMove);
+        arrow.style.opacity = '0';
+        currentHover = null;
+        // Restore default cursor on buttons
+        prevBtn.style.cursor = '';
+        nextBtn.style.cursor = '';
+      }
     };
 
     prevBtn.addEventListener('mouseenter', onPrevEnter);
+    prevBtn.addEventListener('mouseleave', onPrevLeave);
     nextBtn.addEventListener('mouseenter', onNextEnter);
+    nextBtn.addEventListener('mouseleave', onNextLeave);
     wrapper.addEventListener('mouseenter', onWrapperEnter as EventListener);
     wrapper.addEventListener('mouseleave', onWrapperLeave);
-
-    // Handle clicks on disabled buttons: step one slide inward instead of doing nothing
-    const onPrevClickCapture = (event: Event) => {
-      if (!instance) return;
-      // Only intercept if button is actually disabled
-      if (prevBtn.classList.contains('swiper-button-disabled')) {
-        event.preventDefault();
-        event.stopPropagation();
-        // From first slide, go to second
-        if (typeof instance.slideNext === 'function') {
-          instance.slideNext();
-        }
-      }
-      // Otherwise let Swiper handle it natively
-    };
-
-    const onNextClickCapture = (event: Event) => {
-      if (!instance) return;
-      // Only intercept if button is actually disabled
-      if (nextBtn.classList.contains('swiper-button-disabled')) {
-        event.preventDefault();
-        event.stopPropagation();
-        // From last slide, go to previous
-        if (typeof instance.slidePrev === 'function') {
-          instance.slidePrev();
-        }
-      }
-      // Otherwise let Swiper handle it natively
-    };
-
-    // Use capture phase to intercept before Swiper's handlers
-    prevBtn.addEventListener('click', onPrevClickCapture, true);
-    nextBtn.addEventListener('click', onNextClickCapture, true);
 
     // Subscribe to Swiper slideChange event for instant orientation updates
     if (instance && typeof instance.on === 'function') {
@@ -304,8 +320,28 @@ export const popupSwipers = () => {
         initialPoint.y >= rect.top &&
         initialPoint.y <= rect.bottom
       ) {
-        arrow.style.opacity = '1';
+        // Determine which button we're hovering over initially
+        const prevRect = prevBtn.getBoundingClientRect();
+        const nextRect = nextBtn.getBoundingClientRect();
+        
+        if (
+          initialPoint.x >= prevRect.left &&
+          initialPoint.x <= prevRect.right &&
+          initialPoint.y >= prevRect.top &&
+          initialPoint.y <= prevRect.bottom
+        ) {
+          currentHover = 'prev';
+        } else if (
+          initialPoint.x >= nextRect.left &&
+          initialPoint.x <= nextRect.right &&
+          initialPoint.y >= nextRect.top &&
+          initialPoint.y <= nextRect.bottom
+        ) {
+          currentHover = 'next';
+        }
+        
         updatePositionRelativeToWrapper(initialPoint.x, initialPoint.y);
+        updateOrientation(); // Check if button is disabled before showing arrow
         document.addEventListener('pointermove', onPointerMove);
       }
     }
