@@ -36,6 +36,11 @@
   background-color: white !important;
 }
 
+/* Force white circles when mobile menu is open */
+[main-menu].mobile-menu-open .footer_link-svg-circle {
+  border-color: white !important;
+}
+
 /* Optional: ensure SVG logos also turn white */
 [main-menu].mobile-menu-open .menu_logo-link svg,
 [main-menu].mobile-menu-open .menu_logo-link svg * {
@@ -44,6 +49,11 @@
 
 /* Responsive styles for footer_link - only apply color on 992px and above */
 @media (max-width: 991px) {
+  /* Circles are ALWAYS white on mobile */
+  [main-menu] .footer_link-svg-circle {
+    border-color: white !important;
+  }
+  
   /* When mobile menu is open - everything is white */
   [main-menu].mobile-menu-open .footer_link,
   [main-menu].mobile-menu-open .menu_logo-link,

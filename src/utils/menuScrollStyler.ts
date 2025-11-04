@@ -60,17 +60,30 @@ export const menuScrollStyler = () => {
       if (newSection !== currentMenuState) {
         currentMenuState = newSection;
 
+        // Get all circles
+        const circles = mainMenu.querySelectorAll('.footer_link-svg-circle');
+        // Check if we're on desktop (992px+)
+        const isDesktop = window.innerWidth >= 992;
+
         // Apply classes based on current section
         if (currentMenuState === 'navy') {
           mainMenu.classList.add('menu-navy');
           mainMenu.classList.remove('menu-white');
+          // Remove is-white from circles (only on desktop)
+          if (isDesktop) {
+            circles.forEach(circle => circle.classList.remove('is-white'));
+          }
         } else if (currentMenuState === 'white') {
           mainMenu.classList.add('menu-white');
           mainMenu.classList.remove('menu-navy');
+          // Add is-white to circles
+          circles.forEach(circle => circle.classList.add('is-white'));
         } else {
           console.log('MenuScrollStyler: DEFAULT colors (white)');
           mainMenu.classList.add('menu-white');
           mainMenu.classList.remove('menu-navy');
+          // Add is-white to circles (default is white)
+          circles.forEach(circle => circle.classList.add('is-white'));
         }
       }
     };
