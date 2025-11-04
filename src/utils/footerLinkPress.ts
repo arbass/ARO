@@ -49,9 +49,37 @@ export const footerLinkPress = () => {
     removeTimers.set(link, timer);
   };
 
+  // Check if screen width is <= 991px
+  const isMobileScreen = () => window.innerWidth <= 991;
+
+  // Check if link is anchor link (contains # in href)
+  const isAnchorLink = (link: Element): boolean => {
+    if (link.tagName !== 'A') return false;
+    const href = (link as HTMLAnchorElement).getAttribute('href');
+    return href !== null && href.includes('#');
+  };
+
+  // Close mobile menu by clicking burger button
+  const closeMobileMenuIfNeeded = (link: Element) => {
+    if (!isMobileScreen()) return;
+    if (!isAnchorLink(link)) return;
+    
+    const mainMenu = document.querySelector('[main-menu]');
+    const menuClickArea = document.querySelector('[menu-click-area]');
+    
+    if (mainMenu && menuClickArea && mainMenu.contains(link)) {
+      (menuClickArea as HTMLElement).click();
+    }
+  };
+
   if (footerLinks.length) {
     footerLinks.forEach((link, index) => {
       console.log(`FooterLinkPress: Setting up listeners for link ${index}`);
+      
+      // Close mobile menu on click for links inside main-menu on mobile screens
+      link.addEventListener('click', () => {
+        closeMobileMenuIfNeeded(link);
+      });
       
       // Pointer events (covers mouse + touch)
       link.addEventListener('pointerdown', (e) => {
