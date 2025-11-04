@@ -37,29 +37,36 @@ export const anyVisualBeforeAfter = () => {
     divider.style.left = '50%';
     divider.style.zIndex = '10';
 
+    let lastRatio = 0.5;
+    let animationFrameId: number | null = null;
+
     // Clip helpers
     const setBeforeWidth = (ratio: number, animated = false) => {
       const clamped = Math.max(0, Math.min(1, ratio));
+      lastRatio = clamped;
       const percent = clamped * 100;
-      
+
+      if (animationFrameId !== null) {
+        window.cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+      }
+
       if (animated) {
         // Add smooth transition BEFORE changing values
         afterEl.style.transition = 'clip-path 300ms ease-out';
         divider.style.transition = 'left 300ms ease-out';
-        
+
         // Double requestAnimationFrame to ensure transition is fully applied
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
+        animationFrameId = window.requestAnimationFrame(() => {
+          animationFrameId = window.requestAnimationFrame(() => {
             afterEl.style.clipPath = `inset(0 0 0 ${percent}%)`;
             divider.style.left = `${percent}%`;
+            animationFrameId = null;
           });
         });
       } else {
-        // Remove transition for immediate cursor following
         afterEl.style.transition = 'none';
         divider.style.transition = 'none';
-        
-        // Apply immediately
         afterEl.style.clipPath = `inset(0 0 0 ${percent}%)`;
         divider.style.left = `${percent}%`;
       }
@@ -75,7 +82,6 @@ export const anyVisualBeforeAfter = () => {
     let isFirstMove = true;
     let isAnimating = false;
     let animationTimeoutId: number | null = null;
-    let pendingRatio: number | null = null;
 
     // Mouse tracking behavior (desktop only)
     const onMouseMove = (e: MouseEvent) => {
@@ -88,7 +94,6 @@ export const anyVisualBeforeAfter = () => {
         // First move after entering: smooth animation to cursor
         isFirstMove = false;
         isAnimating = true;
-        pendingRatio = null;
 
         setBeforeWidth(ratio, true);
 
@@ -98,18 +103,21 @@ export const anyVisualBeforeAfter = () => {
 
         animationTimeoutId = window.setTimeout(() => {
           isAnimating = false;
-
-          if (pendingRatio !== null) {
-            setBeforeWidth(pendingRatio, false);
-            pendingRatio = null;
-          }
         }, 320);
 
         return;
       }
 
       if (isAnimating) {
-        pendingRatio = ratio;
+        setBeforeWidth(ratio, true);
+
+        if (animationTimeoutId) {
+          window.clearTimeout(animationTimeoutId);
+        }
+
+        animationTimeoutId = window.setTimeout(() => {
+          isAnimating = false;
+        }, 320);
         return;
       }
 
@@ -121,7 +129,6 @@ export const anyVisualBeforeAfter = () => {
       if (isDesktop()) {
         isFirstMove = true; // Reset flag on each enter
         isAnimating = false;
-        pendingRatio = null;
 
         if (animationTimeoutId) {
           window.clearTimeout(animationTimeoutId);
@@ -135,15 +142,19 @@ export const anyVisualBeforeAfter = () => {
     const onMouseLeave = () => {
       if (isDesktop()) {
         container.removeEventListener('mousemove', onMouseMove);
-        setBeforeWidth(0.5, true); // Smooth animation when leaving
         isFirstMove = true; // Reset for next enter
-        pendingRatio = null;
-        isAnimating = false;
+        isAnimating = true;
 
         if (animationTimeoutId) {
           window.clearTimeout(animationTimeoutId);
           animationTimeoutId = null;
         }
+
+        setBeforeWidth(0.5, true); // Smooth animation when leaving
+
+        animationTimeoutId = window.setTimeout(() => {
+          isAnimating = false;
+        }, 320);
       }
     };
 
@@ -160,6 +171,11 @@ export const anyVisualBeforeAfter = () => {
       if (animationTimeoutId) {
         window.clearTimeout(animationTimeoutId);
         animationTimeoutId = null;
+      }
+
+      if (animationFrameId !== null) {
+        window.cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
       }
     };
 
