@@ -6,6 +6,7 @@ import { currentYearUpdater } from './utils/currentYearUpdater';
 import { cardCounterUpdater } from './utils/cardCounterUpdater';
 import { arLabFilters } from './utils/arLabFilters';
 import { studioSwipers } from './utils/studioSwipers';
+import { dvhTrickFixer } from './utils/dvhTrickFixer';
 
 window.Webflow ||= [];
 window.Webflow.push(() => {
@@ -17,4 +18,5 @@ window.Webflow.push(() => {
   cardCounterUpdater();
   arLabFilters();
   studioSwipers();
+  dvhTrickFixer();
 });
