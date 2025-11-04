@@ -1,0 +1,37 @@
+/* Footer Link Press Effect */
+
+/* Default hidden */
+.footer_link .inner-circle,
+.footer_link [inner-circle],
+[main-menu] .footer_link .inner-circle,
+[main-menu] .footer_link [inner-circle],
+[el-footer] .footer_link .inner-circle,
+[el-footer] .footer_link [inner-circle] {
+  opacity: 0 !important;
+  transition: opacity 100ms ease !important;
+}
+
+/* White inner circle when parent has is-white class */
+.footer_link-svg-circle.is-white .inner-circle,
+.footer_link-svg-circle.is-white [inner-circle] {
+  background-color: #fff !important;
+}
+
+/* Pressed state - force show in both menu and footer contexts */
+.footer_link .inner-circle.is-pressed,
+.footer_link [inner-circle].is-pressed,
+[main-menu] .footer_link .inner-circle.is-pressed,
+[main-menu] .footer_link [inner-circle].is-pressed,
+[el-footer] .footer_link .inner-circle.is-pressed,
+[el-footer] .footer_link [inner-circle].is-pressed,
+div.footer_link-svg-circle .inner-circle.is-pressed,
+div.footer_link-svg-circle [inner-circle].is-pressed {
+  opacity: 1 !important;
+}
+
+/* Keep white color when pressed if parent has is-white */
+.footer_link-svg-circle.is-white .inner-circle.is-pressed,
+.footer_link-svg-circle.is-white [inner-circle].is-pressed {
+  background-color: #fff !important;
+}
+

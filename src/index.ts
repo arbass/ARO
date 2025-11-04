@@ -7,6 +7,7 @@ import { cardCounterUpdater } from './utils/cardCounterUpdater';
 import { arLabFilters } from './utils/arLabFilters';
 import { studioSwipers } from './utils/studioSwipers';
 import { dvhTrickFixer } from './utils/dvhTrickFixer';
+import { footerLinkPress } from './utils/footerLinkPress';
 
 window.Webflow ||= [];
 window.Webflow.push(() => {
@@ -19,4 +20,5 @@ window.Webflow.push(() => {
   arLabFilters();
   studioSwipers();
   dvhTrickFixer();
+  footerLinkPress();
 });
