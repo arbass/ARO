@@ -60,8 +60,12 @@ export const anyVisualBeforeAfter = () => {
     // Initial state at 50/50
     setBeforeWidth(0.5);
 
-    // Mouse tracking behavior: divider follows cursor
+    // Check if desktop (hover enabled only on >991px)
+    const isDesktop = () => window.innerWidth > 991;
+
+    // Mouse tracking behavior (desktop only)
     const onMouseMove = (e: MouseEvent) => {
+      if (!isDesktop()) return;
       const rect = container.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const ratio = x / rect.width;
@@ -69,14 +73,19 @@ export const anyVisualBeforeAfter = () => {
     };
 
     const onMouseEnter = () => {
-      container.addEventListener('mousemove', onMouseMove);
+      if (isDesktop()) {
+        container.addEventListener('mousemove', onMouseMove);
+      }
     };
 
     const onMouseLeave = () => {
-      container.removeEventListener('mousemove', onMouseMove);
-      setBeforeWidth(0.5, true); // Smooth animation when leaving
+      if (isDesktop()) {
+        container.removeEventListener('mousemove', onMouseMove);
+        setBeforeWidth(0.5, true); // Smooth animation when leaving
+      }
     };
 
+    // Setup event listeners
     container.addEventListener('mouseenter', onMouseEnter);
     container.addEventListener('mouseleave', onMouseLeave);
 
