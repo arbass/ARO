@@ -8,27 +8,39 @@
   transform: scale(0.95);
 }
 
-/* Smooth transitions for checkbox reordering */
-.filter-checkbox-list {
-  display: flex;
-  flex-wrap: wrap;
+/* Smooth transitions for checkbox reordering (desktop only) */
+@media (min-width: 992px) {
+  .filter-checkbox-list {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .filter-checkbox-list .w-checkbox.checkbox {
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    order: 0;
+  }
+
+  .filter-checkbox-list .w-checkbox.checkbox.is-active {
+    order: -1;
+  }
 }
 
-.filter-checkbox-list .w-checkbox.checkbox {
-  transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
-  order: 0;
-}
-
-.filter-checkbox-list .w-checkbox.checkbox.is-active {
-  order: -1;
-}
-
-/* Opacity management when filters are active */
+/* Opacity management when filters are active (all breakpoints) */
 .filter-checkbox-list.has-active-filters .w-checkbox.checkbox {
   opacity: 0.5;
 }
 
 .filter-checkbox-list.has-active-filters .w-checkbox.checkbox.is-active {
   opacity: 1;
+}
+
+/* Hide scrollbars for filter list across browsers */
+.filter-checkbox-list {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.filter-checkbox-list::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
