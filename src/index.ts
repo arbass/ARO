@@ -8,6 +8,7 @@ import { arLabFilters } from './utils/arLabFilters';
 import { studioSwipers } from './utils/studioSwipers';
 import { dvhTrickFixer } from './utils/dvhTrickFixer';
 import { footerLinkPress } from './utils/footerLinkPress';
+import { looknigListsAggregator } from './utils/looknigListsAggregator';
 
 window.Webflow ||= [];
 window.Webflow.push(() => {
@@ -21,4 +22,5 @@ window.Webflow.push(() => {
   studioSwipers();
   dvhTrickFixer();
   footerLinkPress();
+  looknigListsAggregator();
 });
