@@ -351,11 +351,52 @@ export const popupSwipers = () => {
   };
 
   const openPopup = (popup: HTMLElement) => {
+    const grid = popup.querySelector('.grid.is-ar-lab_popup') as HTMLElement | null;
+    const swiperSystem = popup.querySelector('.ar-lab_swiper-system') as HTMLElement | null;
+
+    // Set initial state
+    popup.style.opacity = '0';
+    popup.style.transition = 'opacity 300ms ease-out';
     popup.style.display = 'flex';
+
+    if (grid) {
+      grid.style.opacity = '0';
+      grid.style.transition = 'opacity 300ms ease-out';
+    }
+    if (swiperSystem) {
+      swiperSystem.style.opacity = '0';
+      swiperSystem.style.transition = 'opacity 300ms ease-out';
+    }
+
+    // Trigger popup fade in
+    requestAnimationFrame(() => {
+      popup.style.opacity = '1';
+      
+      // Trigger children fade in with 100ms delay
+      setTimeout(() => {
+        if (grid) grid.style.opacity = '1';
+        if (swiperSystem) swiperSystem.style.opacity = '1';
+      }, 100);
+    });
   };
 
   const closePopup = (popup: HTMLElement) => {
-    popup.style.display = 'none';
+    const grid = popup.querySelector('.grid.is-ar-lab_popup') as HTMLElement | null;
+    const swiperSystem = popup.querySelector('.ar-lab_swiper-system') as HTMLElement | null;
+
+    // Fade out children first
+    if (grid) grid.style.opacity = '0';
+    if (swiperSystem) swiperSystem.style.opacity = '0';
+
+    // Then fade out popup
+    setTimeout(() => {
+      popup.style.opacity = '0';
+      
+      // Hide after animation completes
+      setTimeout(() => {
+        popup.style.display = 'none';
+      }, 300);
+    }, 100);
   };
 
   cards.forEach((card) => {
