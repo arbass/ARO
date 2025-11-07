@@ -2,7 +2,57 @@ export const menuScrollStyler = () => {
   const mainMenu = document.querySelector('[main-menu]');
 
   if (mainMenu) {
-    let currentMenuState = null;
+    let currentMenuState: 'navy' | 'white' | null = null;
+    let mobileMenuOpen = false;
+    let scrollLocked = false;
+    let scrollY = 0;
+    let lenisWasRunning = false;
+
+    const lockScroll = () => {
+      if (scrollLocked) return;
+
+      scrollY = window.scrollY;
+
+      const lenisCandidate = (
+        window as unknown as {
+          lenis?: { stop?: () => void; start?: () => void; isStopped?: boolean };
+        }
+      ).lenis;
+      if (lenisCandidate && typeof lenisCandidate.stop === 'function') {
+        lenisWasRunning = !(lenisCandidate as { isStopped?: boolean }).isStopped;
+        lenisCandidate.stop();
+      } else {
+        lenisWasRunning = false;
+      }
+
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
+
+      scrollLocked = true;
+    };
+
+    const unlockScroll = () => {
+      if (!scrollLocked) return;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      window.scrollTo(0, scrollY);
+
+      if (lenisWasRunning) {
+        const lenisCandidate = (
+          window as unknown as {
+            lenis?: { stop?: () => void; start?: () => void };
+          }
+        ).lenis;
+        if (lenisCandidate && typeof lenisCandidate.start === 'function') {
+          lenisCandidate.start();
+        }
+      }
+
+      lenisWasRunning = false;
+      scrollLocked = false;
+    };
 
     const updateMenuColors = () => {
       const menuWhiteSections = document.querySelectorAll('[menu-white]');
@@ -13,7 +63,7 @@ export const menuScrollStyler = () => {
       const menuTop = menuRect.top + window.scrollY;
       const menuBottom = menuTop + menuRect.height;
 
-      let newSection = null;
+      let newSection: 'navy' | 'white' | null = null;
 
       // Check all navy sections first (higher priority)
       for (const navySection of menuNavySections) {
@@ -24,7 +74,6 @@ export const menuScrollStyler = () => {
         // Check if menu intersects with this navy section
         if (menuTop < navyBottom && menuBottom > navyTop) {
           newSection = 'navy';
-          console.log('MenuScrollStyler: NAVY colors');
           break; // Stop checking once we find a navy intersection
         }
       }
@@ -39,7 +88,6 @@ export const menuScrollStyler = () => {
           // Check if menu intersects with this white section
           if (menuTop < whiteBottom && menuBottom > whiteTop) {
             newSection = 'white';
-            console.log('MenuScrollStyler: WHITE colors');
             break; // Stop checking once we find a white intersection
           }
         }
@@ -49,11 +97,19 @@ export const menuScrollStyler = () => {
       const menuNav = document.querySelector('[menu-nav]');
       const isMenuNavFlex = menuNav && window.getComputedStyle(menuNav).display === 'flex';
 
-      // Add/remove mobile menu class
+      // Add/remove mobile menu class and lock/unlock scroll
       if (isMenuNavFlex) {
         mainMenu.classList.add('mobile-menu-open');
+        if (!mobileMenuOpen) {
+          mobileMenuOpen = true;
+          lockScroll();
+        }
       } else {
         mainMenu.classList.remove('mobile-menu-open');
+        if (mobileMenuOpen) {
+          mobileMenuOpen = false;
+          unlockScroll();
+        }
       }
 
       // Only update if state changed
@@ -71,19 +127,18 @@ export const menuScrollStyler = () => {
           mainMenu.classList.remove('menu-white');
           // Remove is-white from circles (only on desktop)
           if (isDesktop) {
-            circles.forEach(circle => circle.classList.remove('is-white'));
+            circles.forEach((circle) => circle.classList.remove('is-white'));
           }
         } else if (currentMenuState === 'white') {
           mainMenu.classList.add('menu-white');
           mainMenu.classList.remove('menu-navy');
           // Add is-white to circles
-          circles.forEach(circle => circle.classList.add('is-white'));
+          circles.forEach((circle) => circle.classList.add('is-white'));
         } else {
-          console.log('MenuScrollStyler: DEFAULT colors (white)');
           mainMenu.classList.add('menu-white');
           mainMenu.classList.remove('menu-navy');
           // Add is-white to circles (default is white)
-          circles.forEach(circle => circle.classList.add('is-white'));
+          circles.forEach((circle) => circle.classList.add('is-white'));
         }
       }
     };
