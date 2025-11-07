@@ -320,9 +320,6 @@ export const popupSwipers = () => {
         event.preventDefault();
         event.stopPropagation();
         event.stopImmediatePropagation();
-        if (typeof instance.slideNext === 'function') {
-          instance.slideNext();
-        }
       }
     };
 
@@ -332,9 +329,6 @@ export const popupSwipers = () => {
         event.preventDefault();
         event.stopPropagation();
         event.stopImmediatePropagation();
-        if (typeof instance.slidePrev === 'function') {
-          instance.slidePrev();
-        }
       }
     };
 
