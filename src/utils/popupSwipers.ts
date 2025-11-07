@@ -6,6 +6,54 @@ export const popupSwipers = () => {
 
   const zeroPad2 = (n: number): string => (n < 9 ? `0${n + 1}.` : `${n + 1}.`);
 
+  let scrollLocked = false;
+  let scrollY = 0;
+  let lenisWasRunning = false;
+
+  const lockScroll = () => {
+    if (scrollLocked) return;
+
+    scrollY = window.scrollY;
+
+    const lenisCandidate = (window as unknown as {
+      lenis?: { stop?: () => void; start?: () => void; isStopped?: boolean };
+    }).lenis;
+    if (lenisCandidate && typeof lenisCandidate.stop === 'function') {
+      lenisWasRunning = !(lenisCandidate as { isStopped?: boolean }).isStopped;
+      lenisCandidate.stop();
+    } else {
+      lenisWasRunning = false;
+    }
+
+    const body = document.body;
+    body.style.position = 'fixed';
+    body.style.top = `-${scrollY}px`;
+    body.style.width = '100%';
+
+    scrollLocked = true;
+  };
+
+  const unlockScroll = () => {
+    if (!scrollLocked) return;
+    const body = document.body;
+    body.style.position = '';
+    body.style.top = '';
+    body.style.width = '';
+    window.scrollTo(0, scrollY);
+
+    if (lenisWasRunning) {
+      const lenisCandidate = (window as unknown as {
+        lenis?: { stop?: () => void; start?: () => void };
+      }).lenis;
+      if (lenisCandidate && typeof lenisCandidate.start === 'function') {
+        lenisCandidate.start();
+      }
+    }
+
+    lenisWasRunning = false;
+    scrollLocked = false;
+  };
+
   const numberAndSyncTextInGrids = () => {
     const grids = Array.from(document.querySelectorAll('[ar-lab-grid]')) as HTMLElement[];
     grids.forEach((grid) => {
@@ -418,6 +466,7 @@ export const popupSwipers = () => {
           if (grid) grid.style.transition = '';
           if (swiperSystem) swiperSystem.style.transition = '';
         }, 300);
+        lockScroll();
       }, 100);
     });
   };
@@ -448,6 +497,7 @@ export const popupSwipers = () => {
         popup.style.transition = '';
         if (grid) grid.style.transition = '';
         if (swiperSystem) swiperSystem.style.transition = '';
+        unlockScroll();
       }, 300);
     }, 100);
   };
