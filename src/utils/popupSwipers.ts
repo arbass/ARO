@@ -162,6 +162,18 @@ export const popupSwipers = () => {
     const container = wrapper.closest('.swiper') as HTMLElement | null;
     const instance = container ? swiperInstances.get(container) : undefined;
 
+    // If only one slide, disable both buttons and hide arrow
+    const slideCount = instance?.slides?.length ?? 0;
+    if (slideCount <= 1) {
+      prevBtn.classList.add('swiper-button-disabled');
+      nextBtn.classList.add('swiper-button-disabled');
+      prevBtn.style.cursor = 'default';
+      nextBtn.style.cursor = 'default';
+      arrow.style.display = 'none';
+      wrapper.setAttribute('data-hover-initialized', 'true');
+      return;
+    }
+
     // Ensure instant orientation change and prepare for following the cursor
     arrow.style.setProperty('transition', 'none', 'important');
     arrow.style.setProperty('animation', 'none', 'important');
@@ -301,6 +313,34 @@ export const popupSwipers = () => {
     wrapper.addEventListener('mouseenter', onWrapperEnter as EventListener);
     wrapper.addEventListener('mouseleave', onWrapperLeave);
 
+    // Handle clicks on disabled buttons: step one slide inward instead of doing nothing
+    const onPrevClickCapture = (event: Event) => {
+      if (!instance) return;
+      if (prevBtn.classList.contains('swiper-button-disabled')) {
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        if (typeof instance.slideNext === 'function') {
+          instance.slideNext();
+        }
+      }
+    };
+
+    const onNextClickCapture = (event: Event) => {
+      if (!instance) return;
+      if (nextBtn.classList.contains('swiper-button-disabled')) {
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        if (typeof instance.slidePrev === 'function') {
+          instance.slidePrev();
+        }
+      }
+    };
+
+    prevBtn.addEventListener('click', onPrevClickCapture, true);
+    nextBtn.addEventListener('click', onNextClickCapture, true);
+
     // Subscribe to Swiper slideChange event for instant orientation updates
     if (instance && typeof instance.on === 'function') {
       instance.on('slideChange', () => {
@@ -358,6 +398,7 @@ export const popupSwipers = () => {
     popup.style.opacity = '0';
     popup.style.transition = 'opacity 300ms ease-out';
     popup.style.display = 'flex';
+    popup.setAttribute('data-popup-visible', 'true');
 
     if (grid) {
       grid.style.opacity = '0';
@@ -376,6 +417,13 @@ export const popupSwipers = () => {
       setTimeout(() => {
         if (grid) grid.style.opacity = '1';
         if (swiperSystem) swiperSystem.style.opacity = '1';
+        
+        // Remove transitions after animation completes to prevent flickering during slider navigation
+        setTimeout(() => {
+          popup.style.transition = '';
+          if (grid) grid.style.transition = '';
+          if (swiperSystem) swiperSystem.style.transition = '';
+        }, 300);
       }, 100);
     });
   };
@@ -383,6 +431,13 @@ export const popupSwipers = () => {
   const closePopup = (popup: HTMLElement) => {
     const grid = popup.querySelector('.grid.is-ar-lab_popup') as HTMLElement | null;
     const swiperSystem = popup.querySelector('.ar-lab_swiper-system') as HTMLElement | null;
+
+    popup.setAttribute('data-popup-visible', 'false');
+
+    // Re-apply transitions for closing animation
+    popup.style.transition = 'opacity 300ms ease-out';
+    if (grid) grid.style.transition = 'opacity 300ms ease-out';
+    if (swiperSystem) swiperSystem.style.transition = 'opacity 300ms ease-out';
 
     // Fade out children first
     if (grid) grid.style.opacity = '0';
@@ -395,6 +450,10 @@ export const popupSwipers = () => {
       // Hide after animation completes
       setTimeout(() => {
         popup.style.display = 'none';
+        // Clean up transitions
+        popup.style.transition = '';
+        if (grid) grid.style.transition = '';
+        if (swiperSystem) swiperSystem.style.transition = '';
       }, 300);
     }, 100);
   };
@@ -408,13 +467,25 @@ export const popupSwipers = () => {
     ) as HTMLElement | null;
 
     card.addEventListener('click', async (evt) => {
+      const target = evt.target as HTMLElement | null;
+      const isPopupVisible = popup.getAttribute('data-popup-visible') === 'true';
+      if (isPopupVisible && target && popup.contains(target)) {
+        return;
+      }
+      if (isPopupVisible) {
+        return;
+      }
+
+      const clickEvt = evt as MouseEvent;
+      evt.stopPropagation();
+      evt.preventDefault();
+
       await ensureSwiperAssets();
       openPopup(popup);
       // Wait for layout to update so Swiper can measure sizes
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           initSwipersIn(popup);
-          const clickEvt = evt as MouseEvent;
           setupSliderArrowHover(popup, { x: clickEvt.clientX, y: clickEvt.clientY });
         });
       });
@@ -441,7 +512,6 @@ export const popupSwipers = () => {
         }
       };
       document.addEventListener('keydown', keyHandler);
-      evt.stopPropagation();
     });
 
     if (closeArea) {
