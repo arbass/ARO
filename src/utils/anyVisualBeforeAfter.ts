@@ -12,6 +12,10 @@ export const anyVisualBeforeAfter = () => {
 
     if (!beforeEl || !afterEl || !divider) return;
 
+    // Mark container as initialized to prevent duplicate initialization
+    if (container.hasAttribute('data-before-after-init')) return;
+    container.setAttribute('data-before-after-init', 'true');
+
     // Setup base styles
     container.style.position = 'relative';
     container.style.overflow = 'hidden';
@@ -140,8 +144,17 @@ export const anyVisualBeforeAfter = () => {
       container.removeEventListener('mousemove', onMouseMove);
       container.removeEventListener('mouseleave', onMouseLeave);
       stopAnimation();
+      container.removeAttribute('data-before-after-init');
     };
 
     window.addEventListener('pagehide', cleanup, { once: true });
   });
 };
+
+// Reinitialize on pageshow (browser back/forward navigation)
+window.addEventListener('pageshow', (event) => {
+  // Check if page was restored from bfcache
+  if (event.persisted) {
+    anyVisualBeforeAfter();
+  }
+});
