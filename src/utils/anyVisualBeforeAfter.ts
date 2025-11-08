@@ -12,11 +12,10 @@ export const anyVisualBeforeAfter = () => {
 
     if (!beforeEl || !afterEl || !divider) return;
 
-    // Ensure base styles only once per container
-    container.style.position ||= 'relative';
-    container.style.overflow ||= 'hidden';
+    // Setup base styles
+    container.style.position = 'relative';
+    container.style.overflow = 'hidden';
 
-    // Prepare layers - before is static, after is positioned absolute
     beforeEl.style.position = 'static';
     beforeEl.style.width = '100%';
     beforeEl.style.height = '100%';
@@ -27,7 +26,6 @@ export const anyVisualBeforeAfter = () => {
     afterEl.style.width = '100%';
     afterEl.style.height = '100%';
 
-    // Divider visuals
     divider.style.position = 'absolute';
     divider.style.top = '0';
     divider.style.bottom = '0';
@@ -37,151 +35,113 @@ export const anyVisualBeforeAfter = () => {
     divider.style.left = '50%';
     divider.style.zIndex = '10';
 
-    let lastRatio = 0.5;
-    let animationFrameId: number | null = null;
+    // State
+    let currentPosition = 0.5;
+    let targetPosition = 0.5;
+    let isAnimating = false;
+    let animationFrame: number | null = null;
+    let isFirstHover = true;
 
-    // Clip helpers
-    const setBeforeWidth = (ratio: number, animated = false) => {
+    // Check if desktop
+    const isDesktop = () => window.innerWidth > 991;
+
+    // Update visual position
+    const updatePosition = (ratio: number) => {
       const clamped = Math.max(0, Math.min(1, ratio));
-      lastRatio = clamped;
       const percent = clamped * 100;
+      afterEl.style.clipPath = `inset(0 0 0 ${percent}%)`;
+      divider.style.left = `${percent}%`;
+      currentPosition = clamped;
+    };
 
-      if (animationFrameId !== null) {
-        window.cancelAnimationFrame(animationFrameId);
-        animationFrameId = null;
-      }
+    // Initialize at center
+    updatePosition(0.5);
 
-      if (animated) {
-        // Add smooth transition BEFORE changing values
-        afterEl.style.transition = 'clip-path 300ms ease-out';
-        divider.style.transition = 'left 300ms ease-out';
+    // Smooth animation to target
+    const animateToTarget = () => {
+      if (!isAnimating) return;
 
-        // Double requestAnimationFrame to ensure transition is fully applied
-        animationFrameId = window.requestAnimationFrame(() => {
-          animationFrameId = window.requestAnimationFrame(() => {
-            afterEl.style.clipPath = `inset(0 0 0 ${percent}%)`;
-            divider.style.left = `${percent}%`;
-            animationFrameId = null;
-          });
-        });
+      const diff = targetPosition - currentPosition;
+      const step = diff * 0.15; // Smooth easing factor
+
+      if (Math.abs(diff) > 0.001) {
+        updatePosition(currentPosition + step);
+        animationFrame = requestAnimationFrame(animateToTarget);
       } else {
-        afterEl.style.transition = 'none';
-        divider.style.transition = 'none';
-        afterEl.style.clipPath = `inset(0 0 0 ${percent}%)`;
-        divider.style.left = `${percent}%`;
+        updatePosition(targetPosition);
+        isAnimating = false;
+        isFirstHover = false; // Mark first hover as complete
+        animationFrame = null;
       }
     };
 
-    // Initial state at 50/50
-    setBeforeWidth(0.5);
+    // Start smooth animation
+    const startAnimation = (target: number) => {
+      targetPosition = Math.max(0, Math.min(1, target));
+      
+      if (!isAnimating) {
+        isAnimating = true;
+        animateToTarget();
+      }
+    };
 
-    // Check if desktop (hover enabled only on >991px)
-    const isDesktop = () => window.innerWidth > 991;
+    // Stop animation
+    const stopAnimation = () => {
+      if (animationFrame !== null) {
+        cancelAnimationFrame(animationFrame);
+        animationFrame = null;
+      }
+      isAnimating = false;
+    };
 
-    // Track animation state for smooth first move
-    let isFirstMove = true;
-    let isAnimating = false;
-    let animationTimeoutId: number | null = null;
-
-    // Mouse tracking behavior (desktop only)
+    // Mouse move handler
     const onMouseMove = (e: MouseEvent) => {
       if (!isDesktop()) return;
+
       const rect = container.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const ratio = x / rect.width;
-      
-      if (isFirstMove) {
-        // First move after entering: smooth animation to cursor
-        isFirstMove = false;
-        isAnimating = true;
 
-        setBeforeWidth(ratio, true);
-
-        if (animationTimeoutId) {
-          window.clearTimeout(animationTimeoutId);
-        }
-
-        animationTimeoutId = window.setTimeout(() => {
-          isAnimating = false;
-        }, 320);
-
-        return;
+      if (isFirstHover) {
+        // First hover: smooth animation
+        startAnimation(ratio);
+      } else if (isAnimating) {
+        // Still animating from first hover: update target
+        targetPosition = Math.max(0, Math.min(1, ratio));
+      } else {
+        // After first animation complete: instant update
+        updatePosition(ratio);
       }
-
-      if (isAnimating) {
-        setBeforeWidth(ratio, true);
-
-        if (animationTimeoutId) {
-          window.clearTimeout(animationTimeoutId);
-        }
-
-        animationTimeoutId = window.setTimeout(() => {
-          isAnimating = false;
-        }, 320);
-        return;
-      }
-
-      // Subsequent moves after animation: instant following
-      setBeforeWidth(ratio, false);
     };
 
+    // Mouse enter handler
     const onMouseEnter = () => {
-      if (isDesktop()) {
-        isFirstMove = true; // Reset flag on each enter
-        isAnimating = false;
-
-        if (animationTimeoutId) {
-          window.clearTimeout(animationTimeoutId);
-          animationTimeoutId = null;
-        }
-
-        container.addEventListener('mousemove', onMouseMove);
-      }
+      if (!isDesktop()) return;
+      stopAnimation();
+      isFirstHover = true;
     };
 
+    // Mouse leave handler
     const onMouseLeave = () => {
-      if (isDesktop()) {
-        container.removeEventListener('mousemove', onMouseMove);
-        isFirstMove = true; // Reset for next enter
-        isAnimating = true;
-
-        if (animationTimeoutId) {
-          window.clearTimeout(animationTimeoutId);
-          animationTimeoutId = null;
-        }
-
-        setBeforeWidth(0.5, true); // Smooth animation when leaving
-
-        animationTimeoutId = window.setTimeout(() => {
-          isAnimating = false;
-        }, 320);
-      }
+      if (!isDesktop()) return;
+      stopAnimation();
+      isFirstHover = true;
+      startAnimation(0.5); // Smooth return to center
     };
 
-    // Setup event listeners
+    // Add event listeners
     container.addEventListener('mouseenter', onMouseEnter);
+    container.addEventListener('mousemove', onMouseMove);
     container.addEventListener('mouseleave', onMouseLeave);
 
-    // Defensive cleanup for SPA-like environments
-    const disconnect = () => {
+    // Cleanup
+    const cleanup = () => {
       container.removeEventListener('mouseenter', onMouseEnter);
-      container.removeEventListener('mouseleave', onMouseLeave);
       container.removeEventListener('mousemove', onMouseMove);
-
-      if (animationTimeoutId) {
-        window.clearTimeout(animationTimeoutId);
-        animationTimeoutId = null;
-      }
-
-      if (animationFrameId !== null) {
-        window.cancelAnimationFrame(animationFrameId);
-        animationFrameId = null;
-      }
+      container.removeEventListener('mouseleave', onMouseLeave);
+      stopAnimation();
     };
 
-    // Attach cleanup on pagehide if supported
-    window.addEventListener('pagehide', disconnect, { once: true });
+    window.addEventListener('pagehide', cleanup, { once: true });
   });
 };
-
-
