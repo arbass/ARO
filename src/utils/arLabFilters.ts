@@ -8,7 +8,9 @@ export const arLabFilters = () => {
   }
 
   const filterForm = document.querySelector('#email-form');
-  const templateCheckbox = document.querySelector('.w-checkbox.checkbox');
+  const templateCheckbox = document.querySelector(
+    '.w-checkbox.footer_link.is-filter.is-new-version'
+  );
 
   if (!filterForm || !templateCheckbox) {
     console.log('arLabFilters: Filter form or template checkbox not found');
@@ -184,76 +186,95 @@ export const arLabFilters = () => {
 
   // Function to reorder checkboxes (active ones first)
   const reorderCheckboxes = () => {
-    const checkboxWrappers = Array.from(filterForm.querySelectorAll('.w-checkbox.checkbox')) as HTMLElement[];
-    
+    const checkboxWrappers = Array.from(
+      filterForm.querySelectorAll('.w-checkbox.footer_link.is-filter')
+    ) as HTMLElement[];
+
     // Sort: active first (is-active class), then by original order
     checkboxWrappers.sort((a, b) => {
       const aActive = a.classList.contains('is-active');
       const bActive = b.classList.contains('is-active');
       const aOrder = parseInt(a.getAttribute('data-original-order') || '0');
       const bOrder = parseInt(b.getAttribute('data-original-order') || '0');
-      
+
       if (aActive && !bActive) return -1;
       if (!aActive && bActive) return 1;
       return aOrder - bOrder;
     });
-    
+
     // Reappend in new order (DOM will handle the smooth transition via CSS)
-    checkboxWrappers.forEach(wrapper => {
+    checkboxWrappers.forEach((wrapper) => {
       filterForm.appendChild(wrapper);
     });
   };
 
   // Create checkbox for each category
   categories.forEach((category, index) => {
-    const checkboxWrapper = templateCheckbox.cloneNode(true) as HTMLElement;
-    const checkbox = checkboxWrapper.querySelector('input[type="checkbox"]') as HTMLInputElement;
-    const label = checkboxWrapper.querySelector('.checkbox_label') as HTMLElement;
+    const checkboxLabel = templateCheckbox.cloneNode(true) as HTMLElement;
 
-    // Update checkbox ID and label
-    const checkboxId = `filter-${category.toLowerCase().replace(/\s+/g, '-')}-${index}`;
-    checkbox.id = checkboxId;
-    checkbox.name = checkboxId;
-    
+    // Remove template class
+    checkboxLabel.classList.remove('is-new-version');
+
     // Store original order for later sorting
-    checkboxWrapper.setAttribute('data-original-order', index.toString());
-    checkboxWrapper.setAttribute('data-category', category);
+    checkboxLabel.setAttribute('data-original-order', index.toString());
+    checkboxLabel.setAttribute('data-category', category);
 
-    // Set label text
-    if (label) {
-      label.textContent = category;
-      label.setAttribute('for', checkboxId);
+    // Set label text in the .checkbox_label element
+    const labelElement = checkboxLabel.querySelector('.checkbox_label') as HTMLElement;
+    if (labelElement) {
+      labelElement.textContent = category;
     }
 
-    // Add change event listener
-    checkbox.addEventListener('change', (e) => {
-      const target = e.target as HTMLInputElement;
-      if (target.checked) {
+    // Add click event listener
+    checkboxLabel.addEventListener('click', (e) => {
+      e.preventDefault();
+
+      // Toggle active state
+      const isActive = checkboxLabel.classList.contains('is-active');
+
+      if (!isActive) {
         selectedFilters.add(category);
-        checkboxWrapper.classList.add('is-active');
+        checkboxLabel.classList.add('is-active');
       } else {
         selectedFilters.delete(category);
-        checkboxWrapper.classList.remove('is-active');
+        checkboxLabel.classList.remove('is-active');
       }
-      
+
       // Update opacity state based on active filters
       if (selectedFilters.size > 0) {
         filterForm.classList.add('has-active-filters');
       } else {
         filterForm.classList.remove('has-active-filters');
       }
-      
+
       // Reorder checkboxes with animation
       reorderCheckboxes();
-      
+
       // Filter cards
       filterCards();
     });
 
-    filterForm.appendChild(checkboxWrapper);
+    filterForm.appendChild(checkboxLabel);
   });
 
   console.log(`arLabFilters: Created ${categories.length} filter checkboxes`);
+
+  // Reinitialize Webflow IX2 (Interactions 2.0) for cloned elements
+  try {
+    const Webflow = window.Webflow || [];
+    if (typeof Webflow === 'object' && 'require' in Webflow) {
+      const webflowRequire = Webflow as unknown as {
+        require: (module: string) => { init: () => void };
+      };
+      const ix2 = webflowRequire.require('ix2');
+      if (ix2 && typeof ix2.init === 'function') {
+        ix2.init();
+        console.log('arLabFilters: Webflow IX2 reinitialized');
+      }
+    }
+  } catch (error) {
+    console.log('arLabFilters: Could not reinitialize Webflow IX2', error);
+  }
 
   // Handle window resize to adjust grid positions
   let resizeTimeout: number;
