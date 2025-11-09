@@ -42,6 +42,19 @@ export const arLabFilters = () => {
   // Track selected filters
   const selectedFilters = new Set<string>();
 
+  const updateCheckboxVisualState = (checkboxLabel: HTMLElement, isActive: boolean) => {
+    const crossElement = checkboxLabel.querySelector('.footer_link-svg-cross');
+    const circleElement = checkboxLabel.querySelector('.footer_link-svg-circle');
+
+    if (crossElement) {
+      crossElement.classList.toggle('hide', !isActive);
+    }
+
+    if (circleElement) {
+      circleElement.classList.toggle('hide', isActive);
+    }
+  };
+
   // Check if desktop screen size (992px+)
   const isDesktop = () => window.innerWidth >= 992;
 
@@ -225,6 +238,9 @@ export const arLabFilters = () => {
       labelElement.textContent = category;
     }
 
+    // Ensure initial visual state reflects inactive status
+    updateCheckboxVisualState(checkboxLabel, false);
+
     // Add click event listener
     checkboxLabel.addEventListener('click', (e) => {
       e.preventDefault();
@@ -239,6 +255,8 @@ export const arLabFilters = () => {
         selectedFilters.delete(category);
         checkboxLabel.classList.remove('is-active');
       }
+
+      updateCheckboxVisualState(checkboxLabel, !isActive);
 
       // Update opacity state based on active filters
       if (selectedFilters.size > 0) {
