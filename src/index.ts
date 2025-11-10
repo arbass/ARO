@@ -10,6 +10,7 @@ import { menuVisibilityController } from './utils/menuVisibilityController';
 import { parentLinkWrapper } from './utils/parentLinkWrapper';
 import { popupSwipers } from './utils/popupSwipers';
 import { studioSwipers } from './utils/studioSwipers';
+import { loopedVideoRestarter } from './utils/loopedVideoRestarter';
 
 window.Webflow ||= [];
 window.Webflow.push(() => {
@@ -25,4 +26,5 @@ window.Webflow.push(() => {
   footerLinkPress();
   looknigListsAggregator();
   parentLinkWrapper();
+  loopedVideoRestarter();
 });
