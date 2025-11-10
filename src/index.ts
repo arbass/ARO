@@ -9,8 +9,10 @@ import { menuScrollStyler } from './utils/menuScrollStyler';
 import { menuVisibilityController } from './utils/menuVisibilityController';
 import { parentLinkWrapper } from './utils/parentLinkWrapper';
 import { popupSwipers } from './utils/popupSwipers';
+import { popupVideoAspectRatio } from './utils/popupVideoAspectRatio';
 import { studioSwipers } from './utils/studioSwipers';
 import { loopedVideoRestarter } from './utils/loopedVideoRestarter';
+import './utils/popupVideoAspectRatio.css';
 
 window.Webflow ||= [];
 window.Webflow.push(() => {
@@ -18,6 +20,7 @@ window.Webflow.push(() => {
   menuVisibilityController();
   anyVisualBeforeAfter();
   popupSwipers();
+  popupVideoAspectRatio();
   currentYearUpdater();
   cardCounterUpdater();
   arLabFilters();
