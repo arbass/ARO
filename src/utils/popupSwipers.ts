@@ -460,6 +460,14 @@ export const popupSwipers = () => {
         if (grid) grid.style.opacity = '1';
         if (swiperSystem) swiperSystem.style.opacity = '1';
         
+        // Recalculate video aspect ratios after popup is visible
+        const recalcFn = (window as Window & { recalculatePopupVideoAspectRatios?: () => void }).recalculatePopupVideoAspectRatios;
+        if (typeof recalcFn === 'function') {
+          setTimeout(() => {
+            recalcFn();
+          }, 50);
+        }
+        
         // Remove transitions after animation completes to prevent flickering during slider navigation
         setTimeout(() => {
           popup.style.transition = '';

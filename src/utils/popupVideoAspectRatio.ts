@@ -37,6 +37,26 @@ export const popupVideoAspectRatio = () => {
     }
   };
 
+  const adjustContainerSizeWithRetry = (container: HTMLElement, videoAspectRatio: number, retries = 3) => {
+    const parent = container.parentElement;
+    if (!parent) return;
+
+    // Check if parent has valid dimensions
+    const parentWidth = parent.clientWidth;
+    const parentHeight = parent.clientHeight;
+    
+    if ((!parentWidth || !parentHeight) && retries > 0) {
+      // Parent not yet rendered, retry after next frame
+      requestAnimationFrame(() => {
+        adjustContainerSizeWithRetry(container, videoAspectRatio, retries - 1);
+      });
+      return;
+    }
+
+    // Apply the adjustment
+    adjustContainerSize(container, videoAspectRatio);
+  };
+
   const applyAspectRatio = async (container: HTMLElement) => {
     const videoElement = container.querySelector('video') as HTMLVideoElement | null;
     
@@ -53,8 +73,12 @@ export const popupVideoAspectRatio = () => {
         container.style.aspectRatio = `${aspectRatio}`;
         container.setAttribute('data-aspect-ratio', String(aspectRatio));
         
-        // Adjust size to fit within parent
-        adjustContainerSize(container, aspectRatio);
+        // Adjust size to fit within parent with retry logic
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            adjustContainerSizeWithRetry(container, aspectRatio);
+          });
+        });
         
         return true;
       }
@@ -85,7 +109,13 @@ export const popupVideoAspectRatio = () => {
           const aspectRatio = dimensions.width / dimensions.height;
           container.style.aspectRatio = `${aspectRatio}`;
           container.setAttribute('data-aspect-ratio', String(aspectRatio));
-          adjustContainerSize(container, aspectRatio);
+          
+          // Adjust size with retry logic
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              adjustContainerSizeWithRetry(container, aspectRatio);
+            });
+          });
         }
       } catch (e) {
         // If poster loading fails, keep default aspect ratio from CSS
@@ -139,5 +169,22 @@ export const popupVideoAspectRatio = () => {
     childList: true,
     subtree: true,
   });
+
+  // Export function to recalculate video proportions (useful when popup opens)
+  (window as Window & { recalculatePopupVideoAspectRatios?: () => void }).recalculatePopupVideoAspectRatios = () => {
+    const allContainers = document.querySelectorAll('.popup-video-new');
+    allContainers.forEach((containerElement) => {
+      const container = containerElement as HTMLElement;
+      const aspectRatioStr = container.getAttribute('data-aspect-ratio');
+      if (aspectRatioStr) {
+        const aspectRatio = parseFloat(aspectRatioStr);
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            adjustContainerSizeWithRetry(container, aspectRatio);
+          });
+        });
+      }
+    });
+  };
 };
 
