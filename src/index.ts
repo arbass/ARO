@@ -11,6 +11,7 @@ import { parentLinkWrapper } from './utils/parentLinkWrapper';
 import { popupSwipers } from './utils/popupSwipers';
 import { popupVideoAspectRatio } from './utils/popupVideoAspectRatio';
 import { studioSwipers } from './utils/studioSwipers';
+import { studioSliderLabels } from './utils/studioSliderLabels';
 import { loopedVideoRestarter } from './utils/loopedVideoRestarter';
 import './utils/popupVideoAspectRatio.css';
 
@@ -25,6 +26,7 @@ window.Webflow.push(() => {
   cardCounterUpdater();
   arLabFilters();
   studioSwipers();
+  studioSliderLabels();
   dvhTrickFixer();
   footerLinkPress();
   looknigListsAggregator();
