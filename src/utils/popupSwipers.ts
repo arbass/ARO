@@ -1,5 +1,5 @@
 export const popupSwipers = () => {
-  const cards = Array.from(document.querySelectorAll('[card-ar-lab]')) as HTMLElement[];
+  const cards = Array.from(document.querySelectorAll('[card-ar-lab], .card-ar-lab')) as HTMLElement[];
   if (!cards.length) {
     return;
   }
@@ -7,9 +7,9 @@ export const popupSwipers = () => {
   const zeroPad2 = (n: number): string => (n < 9 ? `0${n + 1}.` : `${n + 1}.`);
 
   const numberAndSyncTextInGrids = () => {
-    const grids = Array.from(document.querySelectorAll('[ar-lab-grid]')) as HTMLElement[];
+    const grids = Array.from(document.querySelectorAll('[ar-lab-grid], .ar-lab-grid')) as HTMLElement[];
     grids.forEach((grid) => {
-      const gridCards = Array.from(grid.querySelectorAll('[card-ar-lab]')) as HTMLElement[];
+      const gridCards = Array.from(grid.querySelectorAll('[card-ar-lab], .card-ar-lab')) as HTMLElement[];
       gridCards.forEach((card, index) => {
         const numEl = card.querySelector('[card-ar-lab_number]') as HTMLElement | null;
         const titleEl = card.querySelector('[card-ar-lab_title]') as HTMLElement | null;
