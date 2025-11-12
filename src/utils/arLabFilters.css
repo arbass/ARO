@@ -50,3 +50,14 @@
   display: none !important;
 }
 
+/* Border circle opacity - 30% by default */
+.filter-checkbox-list .footer_link-svg-circle.is-filter {
+  opacity: 0.3;
+  transition: opacity 100ms ease;
+}
+
+/* Border circle full opacity when active */
+.filter-checkbox-list .w-checkbox.footer_link.is-filter.is-active .footer_link-svg-circle.is-filter {
+  opacity: 1;
+}
+
