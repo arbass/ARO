@@ -10,6 +10,7 @@ import { menuVisibilityController } from './utils/menuVisibilityController';
 import { parentLinkWrapper } from './utils/parentLinkWrapper';
 import { popupSwipers } from './utils/popupSwipers';
 import { popupVideoAspectRatio } from './utils/popupVideoAspectRatio';
+import { popupVideoLazyLoad } from './utils/popupVideoLazyLoad';
 import { studioSwipers } from './utils/studioSwipers';
 import { studioSliderLabels } from './utils/studioSliderLabels';
 import { loopedVideoRestarter } from './utils/loopedVideoRestarter';
@@ -21,6 +22,7 @@ window.Webflow.push(() => {
   menuVisibilityController();
   anyVisualBeforeAfter();
   popupSwipers();
+  popupVideoLazyLoad();
   popupVideoAspectRatio();
   currentYearUpdater();
   cardCounterUpdater();
