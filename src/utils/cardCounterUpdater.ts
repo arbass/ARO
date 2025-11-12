@@ -5,7 +5,7 @@ interface CounterCache {
 }
 
 const CACHE_KEY = 'cardCounterCache';
-const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
+const ONE_DAY_MS = 1 * 24 * 60 * 60 * 1000; // 1 day in milliseconds
 
 const getCachedData = (): CounterCache | null => {
   try {
@@ -15,8 +15,8 @@ const getCachedData = (): CounterCache | null => {
     const data: CounterCache = JSON.parse(cached);
     const now = Date.now();
 
-    // Check if cache is still valid (less than one week old)
-    if (now - data.timestamp < ONE_WEEK_MS) {
+    // Check if cache is still valid (less than one day old)
+    if (now - data.timestamp < ONE_DAY_MS) {
       console.log('CardCounterUpdater: Using cached data');
       return data;
     }
