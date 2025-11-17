@@ -8,25 +8,58 @@ export const studioSliderLabels = () => {
   // Process each slider wrapper
   sliderWrappers.forEach((wrapper) => {
     const label = wrapper.querySelector('[studio-slider-wrapper_label]') as HTMLElement | null;
-    const slides = wrapper.querySelectorAll('[studio-slider-wrapper_slide]') as NodeListOf<HTMLElement>;
 
-    if (!label || !slides.length) {
+    if (!label) {
       return;
     }
 
     // Add transition to label for smooth text changes
     label.style.transition = 'opacity 100ms ease-in-out';
 
+    // Function to find slide element with studio-slider-wrapper_slide attribute from active swiper slide
+    const findSlideElement = (): HTMLElement | null => {
+      // Find active swiper slide
+      const activeSwiperSlide = wrapper.querySelector('.swiper-slide-active') as HTMLElement | null;
+      
+      if (!activeSwiperSlide) {
+        return null;
+      }
+
+      // Find the first ancestor with studio-slider-wrapper_slide attribute
+      let element: HTMLElement | null = activeSwiperSlide;
+      while (element) {
+        if (element.hasAttribute('studio-slider-wrapper_slide')) {
+          return element;
+        }
+        element = element.parentElement;
+      }
+
+      // Fallback: look for studio-slider-wrapper_slide element inside active slide
+      const slideElement = activeSwiperSlide.querySelector('[studio-slider-wrapper_slide]') as HTMLElement | null;
+      return slideElement;
+    };
+
     // Function to update label text with transition
-    const updateLabel = (activeSlide: HTMLElement) => {
-      const newText = activeSlide.getAttribute('studio-slider-wrapper_slide') || '';
+    const updateLabel = () => {
+      const slideElement = findSlideElement();
+      
+      if (!slideElement) {
+        return;
+      }
+
+      // Get innerHTML to preserve original HTML structure including <br> tags
+      const newContent = slideElement.innerHTML.trim();
+      
+      if (!newContent) {
+        return;
+      }
       
       // Fade out
       label.style.opacity = '0';
       
-      // Update text after fade out
+      // Update content after fade out
       setTimeout(() => {
-        label.textContent = newText;
+        label.innerHTML = newContent;
         // Fade in
         label.style.opacity = '1';
       }, 100);
@@ -34,22 +67,7 @@ export const studioSliderLabels = () => {
 
     // Create observer to watch for active slide changes
     const observer = new MutationObserver(() => {
-      // Find active slide (usually has class 'is-active' or 'swiper-slide-active')
-      let activeSlide = wrapper.querySelector('[studio-slider-wrapper_slide].is-active') as HTMLElement | null;
-      
-      // Fallback: check for swiper active class
-      if (!activeSlide) {
-        activeSlide = wrapper.querySelector('[studio-slider-wrapper_slide].swiper-slide-active') as HTMLElement | null;
-      }
-      
-      // Fallback: use first slide if no active slide found
-      if (!activeSlide && slides.length > 0) {
-        activeSlide = slides[0];
-      }
-
-      if (activeSlide) {
-        updateLabel(activeSlide);
-      }
+      updateLabel();
     });
 
     // Start observing the wrapper for class changes
@@ -59,19 +77,8 @@ export const studioSliderLabels = () => {
       subtree: true,
     });
 
-    // Initialize with first active slide or first slide
-    let initialSlide = wrapper.querySelector('[studio-slider-wrapper_slide].is-active') as HTMLElement | null;
-    if (!initialSlide) {
-      initialSlide = wrapper.querySelector('[studio-slider-wrapper_slide].swiper-slide-active') as HTMLElement | null;
-    }
-    if (!initialSlide && slides.length > 0) {
-      initialSlide = slides[0];
-    }
-
-    if (initialSlide) {
-      label.textContent = initialSlide.getAttribute('studio-slider-wrapper_slide') || '';
-      label.style.opacity = '1';
-    }
+    // Initialize with first active slide
+    updateLabel();
   });
 };
 
