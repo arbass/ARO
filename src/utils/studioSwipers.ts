@@ -91,6 +91,7 @@ export const studioSwipers = () => {
         direction: 'horizontal',
         loop: false,
         slidesPerView: 1,
+        spaceBetween: 3,
         pagination: pagination
           ? {
               el: pagination,
@@ -114,4 +115,3 @@ export const studioSwipers = () => {
     });
   });
 };
-
