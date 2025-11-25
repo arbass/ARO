@@ -179,7 +179,54 @@ export const riveLoader = () => {
         canvas,
         autoplay: true,
         stateMachines: 'bumpy',
+        fit: rive.Fit.Cover,
+        alignment: rive.Alignment.Center,
         onLoad: () => {
+          // Get Rive file dimensions and update aspect ratio if not set via attributes
+          try {
+            // Try to get dimensions from artboard
+            const artboard = r.artboard;
+            if (artboard) {
+              const riveWidth = artboard.width;
+              const riveHeight = artboard.height;
+              
+              if (riveWidth > 0 && riveHeight > 0) {
+                const normalizedRatio = formatNormalizedAspectRatio(riveWidth, riveHeight);
+                if (normalizedRatio) {
+                  // Only update if aspect ratio wasn't set via attributes
+                  const hasAttrRatio = placeholder.getAttribute('rive-aspect-ratio') || 
+                                      (placeholder.getAttribute('rive-aspect-width') && placeholder.getAttribute('rive-aspect-height'));
+                  
+                  if (!hasAttrRatio) {
+                    placeholder.style.aspectRatio = normalizedRatio;
+                  }
+                }
+              }
+            } else {
+              // Fallback: try to get from bounds
+              const bounds = r.bounds;
+              if (bounds && bounds.minX !== undefined && bounds.minY !== undefined && bounds.maxX !== undefined && bounds.maxY !== undefined) {
+                const riveWidth = bounds.maxX - bounds.minX;
+                const riveHeight = bounds.maxY - bounds.minY;
+                
+                if (riveWidth > 0 && riveHeight > 0) {
+                  const normalizedRatio = formatNormalizedAspectRatio(riveWidth, riveHeight);
+                  if (normalizedRatio) {
+                    const hasAttrRatio = placeholder.getAttribute('rive-aspect-ratio') || 
+                                        (placeholder.getAttribute('rive-aspect-width') && placeholder.getAttribute('rive-aspect-height'));
+                    
+                    if (!hasAttrRatio) {
+                      placeholder.style.aspectRatio = normalizedRatio;
+                    }
+                  }
+                }
+              }
+            }
+          } catch (error) {
+            // If dimensions are not available, continue with existing aspect ratio
+            console.warn('Could not get Rive dimensions for aspect ratio calculation', error);
+          }
+          
           r.resizeDrawingSurfaceToCanvas();
         },
         onError: (err: Error) => {
