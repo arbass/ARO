@@ -14,6 +14,7 @@ import { popupVideoLazyLoad } from './utils/popupVideoLazyLoad';
 import { studioSwipers } from './utils/studioSwipers';
 import { studioSliderLabels } from './utils/studioSliderLabels';
 import { loopedVideoRestarter } from './utils/loopedVideoRestarter';
+import { embedVideoAspectRatio } from './utils/embedVideoAspectRatio';
 import './utils/popupVideoAspectRatio.css';
 
 window.Webflow ||= [];
@@ -34,4 +35,5 @@ window.Webflow.push(() => {
   looknigListsAggregator();
   parentLinkWrapper();
   loopedVideoRestarter();
+  embedVideoAspectRatio();
 });
