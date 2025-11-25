@@ -15,7 +15,9 @@ import { studioSwipers } from './utils/studioSwipers';
 import { studioSliderLabels } from './utils/studioSliderLabels';
 import { loopedVideoRestarter } from './utils/loopedVideoRestarter';
 import { embedVideoAspectRatio } from './utils/embedVideoAspectRatio';
+import { riveLoader } from './utils/riveLoader';
 import './utils/popupVideoAspectRatio.css';
+import './utils/riveLoader.css';
 
 window.Webflow ||= [];
 window.Webflow.push(() => {
@@ -36,4 +38,5 @@ window.Webflow.push(() => {
   parentLinkWrapper();
   loopedVideoRestarter();
   embedVideoAspectRatio();
+  riveLoader();
 });
