@@ -5,6 +5,34 @@ export const embedVideoAspectRatio = () => {
     return;
   }
 
+  const formatNormalizedAspectRatio = (width: number, height: number): string | null => {
+    if (!width || !height || width <= 0 || height <= 0) {
+      return null;
+    }
+
+    const normalizedHeight = height / width;
+    if (!Number.isFinite(normalizedHeight) || normalizedHeight <= 0) {
+      return null;
+    }
+
+    const rounded = Number(normalizedHeight.toFixed(4));
+    return `1 / ${rounded}`;
+  };
+
+  const setNormalizedAspectRatio = (
+    target: HTMLElement,
+    width: number,
+    height: number
+  ): boolean => {
+    const normalizedRatio = formatNormalizedAspectRatio(width, height);
+    if (!normalizedRatio) {
+      return false;
+    }
+
+    target.style.aspectRatio = normalizedRatio;
+    return true;
+  };
+
   const getImageDimensions = (url: string): Promise<{ width: number; height: number }> => {
     return new Promise((resolve, reject) => {
       const img = new Image();
@@ -79,9 +107,7 @@ export const embedVideoAspectRatio = () => {
       const height = videoElement.videoHeight;
 
       if (width && height && width > 0 && height > 0) {
-        const aspectRatio = width / height;
-        container.style.aspectRatio = `${aspectRatio}`;
-        return true;
+        return setNormalizedAspectRatio(container, width, height);
       }
       return false;
     };
@@ -109,9 +135,9 @@ export const embedVideoAspectRatio = () => {
       try {
         const dimensions = await getImageDimensions(posterUrl);
         if (dimensions.width && dimensions.height) {
-          const aspectRatio = dimensions.width / dimensions.height;
-          container.style.aspectRatio = `${aspectRatio}`;
-          return;
+          if (setNormalizedAspectRatio(container, dimensions.width, dimensions.height)) {
+            return;
+          }
         }
       } catch {
         // Continue to next fallback
@@ -126,9 +152,9 @@ export const embedVideoAspectRatio = () => {
         try {
           const dimensions = await getImageDimensions(dataPosterUrl);
           if (dimensions.width && dimensions.height) {
-            const aspectRatio = dimensions.width / dimensions.height;
-            container.style.aspectRatio = `${aspectRatio}`;
-            return;
+            if (setNormalizedAspectRatio(container, dimensions.width, dimensions.height)) {
+              return;
+            }
           }
         } catch {
           // Continue to next fallback
@@ -144,9 +170,9 @@ export const embedVideoAspectRatio = () => {
         try {
           const dimensions = await getVideoDimensions(videoUrl);
           if (dimensions.width && dimensions.height) {
-            const aspectRatio = dimensions.width / dimensions.height;
-            container.style.aspectRatio = `${aspectRatio}`;
-            return;
+            if (setNormalizedAspectRatio(container, dimensions.width, dimensions.height)) {
+              return;
+            }
           }
         } catch {
           // If all fallbacks fail, keep default aspect ratio from CSS
@@ -161,9 +187,9 @@ export const embedVideoAspectRatio = () => {
         try {
           const dimensions = await getVideoDimensions(dataVideoUrls);
           if (dimensions.width && dimensions.height) {
-            const aspectRatio = dimensions.width / dimensions.height;
-            container.style.aspectRatio = `${aspectRatio}`;
-            return;
+            if (setNormalizedAspectRatio(container, dimensions.width, dimensions.height)) {
+              return;
+            }
           }
         } catch {
           // Could not determine video aspect ratio from data-video-urls

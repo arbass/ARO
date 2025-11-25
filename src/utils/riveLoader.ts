@@ -7,7 +7,36 @@ export const riveLoader = () => {
 
   const RIVE_SCRIPT_URL = 'https://unpkg.com/@rive-app/canvas@2.24.0';
   const RIVE_SCRIPT_ID = 'rive-app-canvas-script';
-  const DEFAULT_ASPECT_RATIO = '2 / 1';
+  const DEFAULT_ASPECT_RATIO = '1 / 0.5';
+
+  const formatNormalizedAspectRatio = (width: number, height: number): string | null => {
+    if (!width || !height || width <= 0 || height <= 0) {
+      return null;
+    }
+
+    const normalizedHeight = height / width;
+    if (!Number.isFinite(normalizedHeight) || normalizedHeight <= 0) {
+      return null;
+    }
+
+    const rounded = Number(normalizedHeight.toFixed(4));
+    return `1 / ${rounded}`;
+  };
+
+  const normalizeAspectRatioString = (value: string | null): string | null => {
+    if (!value) {
+      return null;
+    }
+
+    const parts = value.split('/');
+    if (parts.length !== 2) {
+      return null;
+    }
+
+    const width = Number(parts[0].trim());
+    const height = Number(parts[1].trim());
+    return formatNormalizedAspectRatio(width, height);
+  };
 
   const loadRiveScript = (): Promise<void> => {
     return new Promise((resolve, reject) => {
@@ -82,16 +111,23 @@ export const riveLoader = () => {
   };
 
   const applyAspectRatio = (placeholder: HTMLElement) => {
-    const ratioFromAttr =
-      sanitizeAspectRatio(placeholder.getAttribute('rive-aspect-ratio')) ||
-      (() => {
-        const width = Number(placeholder.getAttribute('rive-aspect-width'));
-        const height = Number(placeholder.getAttribute('rive-aspect-height'));
-        if (!width || !height) {
-          return null;
-        }
-        return `${width} / ${height}`;
-      })();
+    const ratioFromAttr = (() => {
+      const sanitizedRatio = sanitizeAspectRatio(placeholder.getAttribute('rive-aspect-ratio'));
+      const normalizedFromRatio = normalizeAspectRatioString(sanitizedRatio);
+      if (normalizedFromRatio) {
+        return normalizedFromRatio;
+      }
+
+      const widthAttr = placeholder.getAttribute('rive-aspect-width');
+      const heightAttr = placeholder.getAttribute('rive-aspect-height');
+      if (!widthAttr || !heightAttr) {
+        return null;
+      }
+
+      const width = Number(widthAttr);
+      const height = Number(heightAttr);
+      return formatNormalizedAspectRatio(width, height);
+    })();
 
     if (ratioFromAttr) {
       placeholder.style.aspectRatio = ratioFromAttr;
