@@ -1,6 +1,6 @@
 /**
  * Popup Video Lazy Load
- * 
+ *
  * Activates videos only in the active swiper slide when popup opens.
  * Handles slide changes to load videos on demand.
  */
@@ -15,7 +15,48 @@ export const popupVideoLazyLoad = () => {
    * Activate video in a specific slide by renaming lazy-* attributes to normal ones
    */
   const activateVideoInSlide = (slide: HTMLElement) => {
-    // Find all video sources with lazy-src
+    // NEW: Handle smart lazy video containers (v2 structure)
+    const smartContainers = slide.querySelectorAll(
+      '[lazy-video-smart-url]'
+    ) as NodeListOf<HTMLElement>;
+    smartContainers.forEach((smartContainer) => {
+      const videoUrl = smartContainer.getAttribute('lazy-video-smart-url');
+      const posterUrl = smartContainer.getAttribute('lazy-video-smart-url-image-placeholder');
+
+      if (videoUrl) {
+        // Find the Webflow background video container inside
+        const wfContainer = smartContainer.querySelector(
+          '.w-background-video'
+        ) as HTMLElement | null;
+        if (wfContainer) {
+          // Set video URLs on the container
+          wfContainer.setAttribute('data-video-urls', videoUrl);
+
+          // Set poster URL if present
+          if (posterUrl) {
+            wfContainer.setAttribute('data-poster-url', posterUrl);
+          }
+
+          // Find source element and set src
+          const source = wfContainer.querySelector('source') as HTMLSourceElement | null;
+          if (source) {
+            source.setAttribute('src', videoUrl);
+          }
+
+          // Find video element and set background image
+          const video = wfContainer.querySelector('video') as HTMLVideoElement | null;
+          if (video && posterUrl) {
+            video.style.backgroundImage = `url('${posterUrl}')`;
+          }
+        }
+
+        // Remove smart attributes after processing
+        smartContainer.removeAttribute('lazy-video-smart-url');
+        smartContainer.removeAttribute('lazy-video-smart-url-image-placeholder');
+      }
+    });
+
+    // OLD: Find all video sources with lazy-src (legacy structure)
     const sources = slide.querySelectorAll('source[lazy-src]') as NodeListOf<HTMLSourceElement>;
     sources.forEach((source) => {
       const lazySrc = source.getAttribute('lazy-src');
@@ -25,8 +66,10 @@ export const popupVideoLazyLoad = () => {
       }
     });
 
-    // Find Webflow background video containers with lazy-data-video-urls
-    const wfContainers = slide.querySelectorAll('[lazy-data-video-urls]') as NodeListOf<HTMLElement>;
+    // OLD: Find Webflow background video containers with lazy-data-video-urls (legacy structure)
+    const wfContainers = slide.querySelectorAll(
+      '[lazy-data-video-urls]'
+    ) as NodeListOf<HTMLElement>;
     wfContainers.forEach((container) => {
       const lazyUrls = container.getAttribute('lazy-data-video-urls');
       if (lazyUrls) {
@@ -158,4 +201,3 @@ export const popupVideoLazyLoad = () => {
     }
   });
 };
-
