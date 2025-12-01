@@ -265,6 +265,20 @@ export const arLabFilters = () => {
         filterForm.classList.remove('has-active-filters');
       }
 
+      // Force reset hover state on all checkboxes to fix macOS hover bug
+      // This ensures the circle returns to normal size after click
+      const allCheckboxes = filterForm.querySelectorAll('.w-checkbox.footer_link.is-filter');
+      allCheckboxes.forEach((checkbox) => {
+        const element = checkbox as HTMLElement;
+        // Temporarily disable pointer events to force hover state reset
+        element.style.pointerEvents = 'none';
+        
+        // Re-enable after a short delay and IX2 reinit
+        requestAnimationFrame(() => {
+          element.style.pointerEvents = '';
+        });
+      });
+
       // Reorder checkboxes with animation
       reorderCheckboxes();
 
