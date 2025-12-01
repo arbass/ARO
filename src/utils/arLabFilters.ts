@@ -245,6 +245,15 @@ export const arLabFilters = () => {
     checkboxLabel.addEventListener('click', (e) => {
       e.preventDefault();
 
+      // FIX: Manually trigger mouseout/mouseleave to notify Webflow IX2
+      // This helps reset the hover state animation before we modify DOM
+      const mouseOutEvent = new MouseEvent('mouseout', {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+      });
+      checkboxLabel.dispatchEvent(mouseOutEvent);
+
       // Toggle active state
       const isActive = checkboxLabel.classList.contains('is-active');
 
@@ -265,19 +274,17 @@ export const arLabFilters = () => {
         filterForm.classList.remove('has-active-filters');
       }
 
-      // Force reset hover state on all checkboxes to fix macOS hover bug
-      // This ensures the circle returns to normal size after click
-      const allCheckboxes = filterForm.querySelectorAll('.w-checkbox.footer_link.is-filter');
-      allCheckboxes.forEach((checkbox) => {
-        const element = checkbox as HTMLElement;
-        // Temporarily disable pointer events to force hover state reset
-        element.style.pointerEvents = 'none';
-        
-        // Re-enable after a short delay and IX2 reinit
+      // Force reset transform on the circle element
+      // This fixes the bug where the circle stays large after deselecting on Safari
+      const circle = checkboxLabel.querySelector('.footer_link-svg-circle') as HTMLElement;
+      if (circle) {
+        // Clear inline transform style set by Webflow
+        // The CSS transition we added will make this smooth
         requestAnimationFrame(() => {
-          element.style.pointerEvents = '';
+          circle.style.transform = '';
+          circle.style.transition = ''; // Let CSS handle it
         });
-      });
+      }
 
       // Reorder checkboxes with animation
       reorderCheckboxes();
