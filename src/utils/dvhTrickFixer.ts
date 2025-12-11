@@ -31,10 +31,10 @@ export const dvhTrickFixer = () => {
         
         // Set fixed height in rem
         htmlElement.style.height = `${heightInRem}rem`;
-        
-        console.log(
-          `DvhTrickFixer: Fixed element height to ${heightInRem.toFixed(2)}rem (was ${computedHeight}px)`
-        );
+
+        // console.log(
+        //   `DvhTrickFixer: Fixed element height to ${heightInRem.toFixed(2)}rem (was ${computedHeight}px)`
+        // );
       });
     } else {
       // Reset to original dvh values on desktop
@@ -42,7 +42,7 @@ export const dvhTrickFixer = () => {
         const htmlElement = element as HTMLElement;
         // Remove inline height to let original CSS work
         htmlElement.style.removeProperty('height');
-        console.log('DvhTrickFixer: Reset to original dvh values (desktop mode)');
+        // console.log('DvhTrickFixer: Reset to original dvh values (desktop mode)');
       });
     }
   };

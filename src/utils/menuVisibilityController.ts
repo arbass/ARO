@@ -32,15 +32,15 @@ export const menuVisibilityController = () => {
         // Menu should be visible - remove hidden class
         mainMenu.classList.remove('is-hidden');
         if (isScrollingUp) {
-          console.log('MenuVisibilityController: Menu visible (scrolling up)');
+          // console.log('MenuVisibilityController: Menu visible (scrolling up)');
         } else {
-          console.log('MenuVisibilityController: Menu visible (in trigger zone)');
+          // console.log('MenuVisibilityController: Menu visible (in trigger zone)');
         }
       } else {
         // Menu should be hidden - add hidden class only if not scrolling up and outside trigger
         if (!isInTriggerZone && !isScrollingUp) {
           mainMenu.classList.add('is-hidden');
-          console.log('MenuVisibilityController: Menu hidden (scrolling down, outside trigger zone)');
+          // console.log('MenuVisibilityController: Menu hidden (scrolling down, outside trigger zone)');
         }
       }
     };

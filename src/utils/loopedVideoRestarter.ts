@@ -14,7 +14,7 @@ export const loopedVideoRestarter = () => {
 
     if (playPromise instanceof Promise) {
       playPromise.catch((error) => {
-        console.warn('LoopedVideoRestarter: Failed to trigger playback', error);
+        // console.warn('LoopedVideoRestarter: Failed to trigger playback', error);
       });
     }
   };

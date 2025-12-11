@@ -143,14 +143,14 @@ export const riveLoader = () => {
     const riveFileUrlRaw = placeholder.getAttribute('rive-file-link');
 
     if (!riveFileUrlRaw) {
-      console.error('rive-file-link attribute is missing');
+      // console.error('rive-file-link attribute is missing');
       return;
     }
 
     const riveFileUrl = decodeHtmlEntities(riveFileUrlRaw);
 
     if (!riveFileUrl || riveFileUrl.indexOf('{{') !== -1) {
-      console.error('Rive file URL is not set or contains placeholder');
+      // console.error('Rive file URL is not set or contains placeholder');
       return;
     }
 
@@ -170,7 +170,7 @@ export const riveLoader = () => {
 
       const rive = (window as any).rive;
       if (!rive?.Rive) {
-        console.error('Rive library is not available');
+        // console.error('Rive library is not available');
         return;
       }
 
@@ -224,17 +224,17 @@ export const riveLoader = () => {
             }
           } catch (error) {
             // If dimensions are not available, continue with existing aspect ratio
-            console.warn('Could not get Rive dimensions for aspect ratio calculation', error);
+            // console.warn('Could not get Rive dimensions for aspect ratio calculation', error);
           }
           
           r.resizeDrawingSurfaceToCanvas();
         },
         onError: (err: Error) => {
-          console.error('Rive error:', err);
+          // console.error('Rive error:', err);
         },
       });
     } catch (error) {
-      console.error('Failed to initialize Rive:', error);
+      // console.error('Failed to initialize Rive:', error);
     }
   };
 

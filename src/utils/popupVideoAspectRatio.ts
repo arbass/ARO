@@ -119,7 +119,7 @@ export const popupVideoAspectRatio = () => {
         }
       } catch (e) {
         // If poster loading fails, keep default aspect ratio from CSS
-        console.warn('Could not load poster dimensions for aspect ratio calculation', e);
+        // console.warn('Could not load poster dimensions for aspect ratio calculation', e);
       }
     }
   };

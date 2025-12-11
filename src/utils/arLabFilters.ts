@@ -3,7 +3,7 @@ import './arLabFilters.css';
 export const arLabFilters = () => {
   const allCards = document.querySelectorAll('[card-ar-lab]');
   if (!allCards.length) {
-    console.log('arLabFilters: No AR Lab cards found');
+    // console.log('arLabFilters: No AR Lab cards found');
     return;
   }
 
@@ -13,11 +13,11 @@ export const arLabFilters = () => {
   );
 
   if (!filterForm || !templateCheckbox) {
-    console.log('arLabFilters: Filter form or template checkbox not found');
+    // console.log('arLabFilters: Filter form or template checkbox not found');
     return;
   }
 
-  console.log(`arLabFilters: Found ${allCards.length} cards`);
+  // console.log(`arLabFilters: Found ${allCards.length} cards`);
 
   // Extract all unique categories from cards
   const categoriesSet = new Set<string>();
@@ -34,7 +34,7 @@ export const arLabFilters = () => {
   });
 
   const categories = Array.from(categoriesSet).sort();
-  console.log('arLabFilters: Found categories:', categories);
+  // console.log('arLabFilters: Found categories:', categories);
 
   // Clear existing checkboxes (keep only template if needed or remove all)
   filterForm.innerHTML = '';
@@ -62,7 +62,7 @@ export const arLabFilters = () => {
   const recalculateGridPositions = () => {
     // Only apply grid positions on desktop
     if (!isDesktop()) {
-      console.log('arLabFilters: Tablet/mobile detected, skipping grid recalculation');
+      // console.log('arLabFilters: Tablet/mobile detected, skipping grid recalculation');
       return;
     }
 
@@ -122,7 +122,7 @@ export const arLabFilters = () => {
         // Reset grid-column to let CSS handle it
         cardElement.style.removeProperty('grid-column');
       });
-      console.log('arLabFilters: Showing all cards (no filters selected)');
+      // console.log('arLabFilters: Showing all cards (no filters selected)');
 
       // Recalculate grid after animation
       setTimeout(() => {
@@ -188,7 +188,7 @@ export const arLabFilters = () => {
         }
       });
 
-      console.log('arLabFilters: Filtered cards by:', Array.from(selectedFilters));
+      // console.log('arLabFilters: Filtered cards by:', Array.from(selectedFilters));
 
       // Recalculate grid positions after animation completes
       setTimeout(() => {
@@ -296,7 +296,7 @@ export const arLabFilters = () => {
     filterForm.appendChild(checkboxLabel);
   });
 
-  console.log(`arLabFilters: Created ${categories.length} filter checkboxes`);
+  // console.log(`arLabFilters: Created ${categories.length} filter checkboxes`);
 
   // Reinitialize Webflow IX2 (Interactions 2.0) for cloned elements
   try {
@@ -308,11 +308,11 @@ export const arLabFilters = () => {
       const ix2 = webflowRequire.require('ix2');
       if (ix2 && typeof ix2.init === 'function') {
         ix2.init();
-        console.log('arLabFilters: Webflow IX2 reinitialized');
+        // console.log('arLabFilters: Webflow IX2 reinitialized');
       }
     }
   } catch (error) {
-    console.log('arLabFilters: Could not reinitialize Webflow IX2', error);
+    // console.log('arLabFilters: Could not reinitialize Webflow IX2', error);
   }
 
   // Handle window resize to adjust grid positions
@@ -329,7 +329,7 @@ export const arLabFilters = () => {
           allCards.forEach((card) => {
             (card as HTMLElement).style.removeProperty('grid-column');
           });
-          console.log('arLabFilters: Switched to tablet/mobile, removed grid overrides');
+          // console.log('arLabFilters: Switched to tablet/mobile, removed grid overrides');
         }
       }
     }, 150);

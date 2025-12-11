@@ -2,7 +2,7 @@ import './footerLinkPress.css';
 
 export const footerLinkPress = () => {
   const footerLinks = document.querySelectorAll('.footer_link');
-  console.log('FooterLinkPress: Found links:', footerLinks.length);
+  // console.log('FooterLinkPress: Found links:', footerLinks.length);
 
   const findInnerCircle = (root: Element | Document): HTMLElement | null => {
     return (root.querySelector('.inner-circle') as HTMLElement) || (root.querySelector('[inner-circle]') as HTMLElement);
@@ -12,11 +12,11 @@ export const footerLinkPress = () => {
   const removeTimers = new WeakMap<Element, number>();
 
   const addPressed = (link: Element) => {
-    console.log('FooterLinkPress: addPressed called');
+    // console.log('FooterLinkPress: addPressed called');
     const innerCircle = findInnerCircle(link);
-    console.log('FooterLinkPress: innerCircle found:', innerCircle);
+    // console.log('FooterLinkPress: innerCircle found:', innerCircle);
     if (!innerCircle) {
-      console.log('FooterLinkPress: innerCircle NOT found!');
+      // console.log('FooterLinkPress: innerCircle NOT found!');
       return;
     }
 
@@ -28,8 +28,8 @@ export const footerLinkPress = () => {
     }
 
     innerCircle.classList.add('is-pressed');
-    console.log('FooterLinkPress: Added is-pressed class, classes now:', innerCircle.className);
-    console.log('FooterLinkPress: Computed opacity:', window.getComputedStyle(innerCircle).opacity);
+    // console.log('FooterLinkPress: Added is-pressed class, classes now:', innerCircle.className);
+    // console.log('FooterLinkPress: Computed opacity:', window.getComputedStyle(innerCircle).opacity);
   };
 
   const scheduleRemovePressed = (link: Element) => {
@@ -74,8 +74,8 @@ export const footerLinkPress = () => {
 
   if (footerLinks.length) {
     footerLinks.forEach((link, index) => {
-      console.log(`FooterLinkPress: Setting up listeners for link ${index}`);
-      
+      // console.log(`FooterLinkPress: Setting up listeners for link ${index}`);
+
       // Close mobile menu on click for links inside main-menu on mobile screens
       link.addEventListener('click', () => {
         closeMobileMenuIfNeeded(link);
@@ -83,12 +83,12 @@ export const footerLinkPress = () => {
       
       // Pointer events (covers mouse + touch)
       link.addEventListener('pointerdown', (e) => {
-        console.log('FooterLinkPress: pointerdown event');
+        // console.log('FooterLinkPress: pointerdown event');
         e.preventDefault();
         addPressed(link);
       });
       link.addEventListener('pointerup', () => {
-        console.log('FooterLinkPress: pointerup event');
+        // console.log('FooterLinkPress: pointerup event');
         scheduleRemovePressed(link);
       });
       link.addEventListener('pointerleave', () => scheduleRemovePressed(link));
@@ -96,12 +96,12 @@ export const footerLinkPress = () => {
 
       // Mouse fallbacks
       link.addEventListener('mousedown', (e) => {
-        console.log('FooterLinkPress: mousedown event');
+        // console.log('FooterLinkPress: mousedown event');
         e.preventDefault();
         addPressed(link);
       });
       link.addEventListener('mouseup', () => {
-        console.log('FooterLinkPress: mouseup event');
+        // console.log('FooterLinkPress: mouseup event');
         scheduleRemovePressed(link);
       });
       link.addEventListener('mouseleave', () => scheduleRemovePressed(link));
@@ -109,7 +109,7 @@ export const footerLinkPress = () => {
 
       // Touch fallbacks
       link.addEventListener('touchstart', (e) => {
-        console.log('FooterLinkPress: touchstart event');
+        // console.log('FooterLinkPress: touchstart event');
         addPressed(link);
       }, { passive: true });
       link.addEventListener('touchend', () => scheduleRemovePressed(link));
