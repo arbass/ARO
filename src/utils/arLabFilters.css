@@ -25,6 +25,26 @@
   }
 }
 
+/* Mobile/tablet (<= 991px): horizontal flex, no wrapping, unified spacing */
+@media (max-width: 991px) {
+  .filter-checkbox-list {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.75rem;
+    align-items: center;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .filter-checkbox-list .w-checkbox.footer_link.is-filter {
+    margin: 0 !important;
+  }
+
+  .filter-checkbox-list .checkbox_label {
+    white-space: nowrap;
+  }
+}
+
 /* Opacity management when filters are active (all breakpoints) */
 .filter-checkbox-list.has-active-filters .w-checkbox.footer_link.is-filter {
   opacity: 0.5;
