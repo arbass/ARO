@@ -1,5 +1,10 @@
 export const embedVideoAspectRatio = () => {
-  const embedVideoContainers = document.querySelectorAll('.embed_video');
+  // Support both old .embed_video and new .w-background-video containers
+  const oldContainers = document.querySelectorAll('.embed_video');
+  const newContainers = document.querySelectorAll('.w-background-video');
+
+  // Combine both types of containers
+  const embedVideoContainers = [...Array.from(oldContainers), ...Array.from(newContainers)];
 
   if (!embedVideoContainers.length) {
     return;
@@ -63,8 +68,45 @@ export const embedVideoAspectRatio = () => {
   };
 
   const setupEmbedVideo = (container: HTMLElement) => {
-    const imageCoverUrlRaw = container.getAttribute('embed_video-image-cover');
-    const videoFileUrlRaw = container.getAttribute('embed_video-file');
+    let imageCoverUrlRaw: string | null = null;
+    let videoFileUrlRaw: string | null = null;
+
+    // Handle different container types
+    if (container.classList.contains('embed_video')) {
+      // Old embed_video container - attributes are directly on this element
+      imageCoverUrlRaw = container.getAttribute('embed_video-image-cover');
+      videoFileUrlRaw = container.getAttribute('embed_video-file');
+    } else if (container.classList.contains('w-background-video')) {
+      // New w-background-video container - check various sources for attributes
+      imageCoverUrlRaw = container.getAttribute('embed_video-image-cover');
+      videoFileUrlRaw = container.getAttribute('embed_video-file');
+
+      // Check for embed_video parent element (legacy support)
+      if (!imageCoverUrlRaw && !videoFileUrlRaw) {
+        const embedVideoParent = container.closest('[embed_video]') as HTMLElement | null;
+        if (embedVideoParent) {
+          imageCoverUrlRaw = embedVideoParent.getAttribute('embed_video-image-cover');
+          videoFileUrlRaw = embedVideoParent.getAttribute('embed_video-file');
+        }
+      }
+
+      // Check for new attributes on container or parent for backward compatibility
+      if (!imageCoverUrlRaw && !videoFileUrlRaw) {
+        const parentPopup = container.closest('.popup-video-new') as HTMLElement | null;
+        if (parentPopup) {
+          imageCoverUrlRaw = parentPopup.getAttribute('lazy-video-smart-url-image-placeholder');
+          videoFileUrlRaw = parentPopup.getAttribute('lazy-video-smart-url');
+        }
+      }
+
+      // Also check on container itself for new attributes
+      if (!imageCoverUrlRaw) {
+        imageCoverUrlRaw = container.getAttribute('lazy-video-smart-url-image-placeholder');
+      }
+      if (!videoFileUrlRaw) {
+        videoFileUrlRaw = container.getAttribute('lazy-video-smart-url');
+      }
+    }
 
     if (!imageCoverUrlRaw && !videoFileUrlRaw) {
       return;
@@ -91,6 +133,14 @@ export const embedVideoAspectRatio = () => {
       sourceElement.setAttribute('src', videoFileUrl);
       if (videoElement) {
         videoElement.src = videoFileUrl;
+        // Initialize video element
+        videoElement.load();
+        // Auto-play if specified
+        if (videoElement.hasAttribute('autoplay')) {
+          videoElement.play().catch(() => {
+            // Autoplay might be blocked, that's ok
+          });
+        }
       }
     }
   };
@@ -210,13 +260,22 @@ export const embedVideoAspectRatio = () => {
     mutations.forEach((mutation) => {
       mutation.addedNodes.forEach((node) => {
         if (node instanceof HTMLElement) {
-          // Check if the added node itself is an embed_video container
-          if (node.classList.contains('embed_video')) {
+          // Check if the added node itself is an embed_video or w-background-video container
+          if (
+            node.classList.contains('embed_video') ||
+            node.classList.contains('w-background-video')
+          ) {
             setupEmbedVideo(node);
             applyAspectRatio(node);
           }
-          // Check for embed_video containers within the added node
-          const nestedContainers = node.querySelectorAll('.embed_video');
+          // Check for embed_video or w-background-video containers within the added node
+          const nestedOldContainers = node.querySelectorAll('.embed_video');
+          const nestedNewContainers = node.querySelectorAll('.w-background-video');
+          const nestedContainers = [
+            ...Array.from(nestedOldContainers),
+            ...Array.from(nestedNewContainers),
+          ];
+
           nestedContainers.forEach((container) => {
             setupEmbedVideo(container as HTMLElement);
             applyAspectRatio(container as HTMLElement);
