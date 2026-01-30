@@ -3,7 +3,74 @@
  *
  * Activates videos only in the active swiper slide when popup opens.
  * Handles slide changes to load videos on demand.
+ *
+ * IMPORTANT: protectVideosFromAutoload() runs immediately on module import
+ * to prevent Webflow Background Video from auto-loading all videos.
  */
+
+/**
+ * Protect videos from Webflow auto-loading by moving lazy-video-smart-url
+ * to a safe attribute that Webflow won't read.
+ * This MUST run before Webflow Background Video script initializes.
+ */
+const protectVideosFromAutoload = () => {
+  // Only protect videos inside popups (ar-lab_popup)
+  const popupSmartContainers = document.querySelectorAll(
+    '[ar-lab_popup] [lazy-video-smart-url]'
+  ) as NodeListOf<HTMLElement>;
+
+  popupSmartContainers.forEach((container) => {
+    const videoUrl = container.getAttribute('lazy-video-smart-url');
+    const posterUrl = container.getAttribute('lazy-video-smart-url-image-placeholder');
+
+    if (videoUrl) {
+      // Save URL to our own protected attribute
+      container.setAttribute('data-protected-video-url', videoUrl);
+      // Remove the attribute that Webflow reads
+      container.removeAttribute('lazy-video-smart-url');
+    }
+
+    if (posterUrl) {
+      // Save poster URL
+      container.setAttribute('data-protected-poster-url', posterUrl);
+      container.removeAttribute('lazy-video-smart-url-image-placeholder');
+    }
+
+    // Also prevent video element from loading by removing preload and source src
+    const wfContainer = container.querySelector('.w-background-video') as HTMLElement | null;
+    if (wfContainer) {
+      const video = wfContainer.querySelector('video') as HTMLVideoElement | null;
+      const source = wfContainer.querySelector('source') as HTMLSourceElement | null;
+
+      if (video) {
+        // Set preload to none to prevent any loading
+        video.preload = 'none';
+        // Remove autoplay temporarily (will restore on popup open)
+        if (video.hasAttribute('autoplay')) {
+          video.removeAttribute('autoplay');
+          video.setAttribute('data-was-autoplay', 'true');
+        }
+      }
+
+      if (source) {
+        // Remove src if it was set, save to lazy-src
+        const src = source.getAttribute('src');
+        if (src) {
+          source.setAttribute('lazy-src', src);
+          source.removeAttribute('src');
+        }
+      }
+    }
+  });
+};
+
+// Run protection immediately when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', protectVideosFromAutoload);
+} else {
+  // DOM already loaded, run immediately
+  protectVideosFromAutoload();
+}
 
 export const popupVideoLazyLoad = () => {
   const cards = Array.from(document.querySelectorAll('[card-ar-lab]')) as HTMLElement[];
@@ -15,7 +82,57 @@ export const popupVideoLazyLoad = () => {
    * Activate video in a specific slide by renaming lazy-* attributes to normal ones
    */
   const activateVideoInSlide = (slide: HTMLElement) => {
-    // NEW: Handle smart lazy video containers (v2 structure)
+    // Handle protected video containers (videos protected from Webflow autoload)
+    const protectedContainers = slide.querySelectorAll(
+      '[data-protected-video-url]'
+    ) as NodeListOf<HTMLElement>;
+    protectedContainers.forEach((container) => {
+      const videoUrl = container.getAttribute('data-protected-video-url');
+      const posterUrl = container.getAttribute('data-protected-poster-url');
+
+      if (videoUrl) {
+        // Find the Webflow background video container inside
+        const wfContainer = container.querySelector(
+          '.w-background-video'
+        ) as HTMLElement | null;
+        if (wfContainer) {
+          // Set video URLs on the container
+          wfContainer.setAttribute('data-video-urls', videoUrl);
+
+          // Set poster URL if present
+          if (posterUrl) {
+            wfContainer.setAttribute('data-poster-url', posterUrl);
+          }
+
+          // Find source element and set src
+          const source = wfContainer.querySelector('source') as HTMLSourceElement | null;
+          if (source) {
+            source.setAttribute('src', videoUrl);
+          }
+
+          // Find video element and configure
+          const video = wfContainer.querySelector('video') as HTMLVideoElement | null;
+          if (video) {
+            if (posterUrl) {
+              video.style.backgroundImage = `url('${posterUrl}')`;
+            }
+            // Restore autoplay if it was removed
+            if (video.getAttribute('data-was-autoplay') === 'true') {
+              video.setAttribute('autoplay', '');
+              video.removeAttribute('data-was-autoplay');
+            }
+            // Enable loading now
+            video.preload = 'auto';
+          }
+        }
+
+        // Remove protected attributes after processing
+        container.removeAttribute('data-protected-video-url');
+        container.removeAttribute('data-protected-poster-url');
+      }
+    });
+
+    // LEGACY: Handle smart lazy video containers (v2 structure) - for non-popup videos
     const smartContainers = slide.querySelectorAll(
       '[lazy-video-smart-url]'
     ) as NodeListOf<HTMLElement>;
