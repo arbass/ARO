@@ -7,13 +7,20 @@ export const menuVisibilityController = () => {
     let isScrollingUp = false;
 
     const updateMenuVisibility = () => {
+      // Get current scroll position
+      const currentScrollY = window.scrollY;
+
+      // Safari rubber band: при overscroll scrollY <= 0, меню всегда видимо
+      if (currentScrollY <= 0) {
+        mainMenu.classList.remove('is-hidden');
+        lastScrollY = 0;
+        return;
+      }
+
       // Get trigger position and dimensions
       const triggerRect = scrollTrigger.getBoundingClientRect();
       const triggerTop = triggerRect.top + window.scrollY;
       const triggerBottom = triggerTop + triggerRect.height;
-
-      // Get current scroll position
-      const currentScrollY = window.scrollY;
 
       // Detect scroll direction
       isScrollingUp = currentScrollY < lastScrollY;

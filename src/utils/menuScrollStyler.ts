@@ -55,6 +55,36 @@ export const menuScrollStyler = () => {
     };
 
     const updateMenuColors = () => {
+      // Check if menu-nav is flex (mobile menu open)
+      const menuNav = document.querySelector('[menu-nav]');
+      const isMenuNavFlex = menuNav && window.getComputedStyle(menuNav).display === 'flex';
+
+      // Add/remove mobile menu class and lock/unlock scroll
+      if (isMenuNavFlex) {
+        mainMenu.classList.add('mobile-menu-open');
+        if (!mobileMenuOpen) {
+          mobileMenuOpen = true;
+          lockScroll();
+        }
+      } else {
+        mainMenu.classList.remove('mobile-menu-open');
+        if (mobileMenuOpen) {
+          mobileMenuOpen = false;
+          unlockScroll();
+        }
+      }
+
+      // Safari rubber band: при overscroll не пересчитываем цвет
+      // scrollY < 0 — некоторые версии Safari дают отрицательный scrollY
+      // scrollY === 0 && docTop > 0 — визуальный сдвиг контента при rubber band
+      // Не блокируем обычную загрузку страницы (scrollY === 0, docTop === 0)
+      const isRubberBanding =
+        window.scrollY < 0 ||
+        (window.scrollY === 0 && document.documentElement.getBoundingClientRect().top > 0);
+      if (isRubberBanding) {
+        return;
+      }
+
       const menuWhiteSections = document.querySelectorAll('[menu-white]');
       const menuNavySections = document.querySelectorAll('[menu-navy]');
 
@@ -90,25 +120,6 @@ export const menuScrollStyler = () => {
             newSection = 'white';
             break; // Stop checking once we find a white intersection
           }
-        }
-      }
-
-      // Check if menu-nav is flex (mobile menu open)
-      const menuNav = document.querySelector('[menu-nav]');
-      const isMenuNavFlex = menuNav && window.getComputedStyle(menuNav).display === 'flex';
-
-      // Add/remove mobile menu class and lock/unlock scroll
-      if (isMenuNavFlex) {
-        mainMenu.classList.add('mobile-menu-open');
-        if (!mobileMenuOpen) {
-          mobileMenuOpen = true;
-          lockScroll();
-        }
-      } else {
-        mainMenu.classList.remove('mobile-menu-open');
-        if (mobileMenuOpen) {
-          mobileMenuOpen = false;
-          unlockScroll();
         }
       }
 
